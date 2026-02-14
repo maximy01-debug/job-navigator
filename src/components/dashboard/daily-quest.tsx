@@ -1,10 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import Link from "next/link"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { CheckCircle2, Circle, Plus } from "lucide-react"
+import { CheckCircle2, Circle, Plus, ExternalLink } from "lucide-react"
 
 interface DailyGoal {
   id: string
@@ -19,17 +20,42 @@ const mockGoals: DailyGoal[] = [
 ]
 
 export function DailyQuest() {
-  const [goals] = useState<DailyGoal[]>(mockGoals)
+  const [goals, setGoals] = useState<DailyGoal[]>(mockGoals)
+  const [showInput, setShowInput] = useState(false)
+  const [newGoal, setNewGoal] = useState("")
 
   const completedCount = goals.filter(g => g.isCompleted).length
-  const progressPercentage = (completedCount / goals.length) * 100
+  const progressPercentage = goals.length > 0 ? (completedCount / goals.length) * 100 : 0
+
+  const toggleGoal = (id: string) => {
+    setGoals(goals.map(goal =>
+      goal.id === id ? { ...goal, isCompleted: !goal.isCompleted } : goal
+    ))
+  }
+
+  const handleAddGoal = () => {
+    if (newGoal.trim()) {
+      const goal: DailyGoal = {
+        id: Date.now().toString(),
+        content: newGoal,
+        isCompleted: false
+      }
+      setGoals([...goals, goal])
+      setNewGoal("")
+      setShowInput(false)
+    }
+  }
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>오늘의 퀘스트 🎯</span>
-          <Button size="sm" variant="outline">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setShowInput(!showInput)}
+          >
             <Plus className="h-4 w-4 mr-1" />
             추가
           </Button>
@@ -41,11 +67,40 @@ export function DailyQuest() {
       <CardContent className="space-y-4">
         <Progress value={progressPercentage} className="h-2" />
 
+        {/* 새 목표 추가 입력창 */}
+        {showInput && (
+          <div className="flex gap-2 p-3 border rounded-lg bg-muted/50">
+            <input
+              type="text"
+              value={newGoal}
+              onChange={(e) => setNewGoal(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleAddGoal()}
+              placeholder="새 목표를 입력하세요..."
+              className="flex-1 px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              autoFocus
+            />
+            <Button size="sm" onClick={handleAddGoal}>
+              추가
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setShowInput(false)
+                setNewGoal("")
+              }}
+            >
+              취소
+            </Button>
+          </div>
+        )}
+
         <div className="space-y-3">
           {goals.map((goal) => (
             <div
               key={goal.id}
               className="flex items-center space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+              onClick={() => toggleGoal(goal.id)}
             >
               {goal.isCompleted ? (
                 <CheckCircle2 className="h-5 w-5 text-secondary flex-shrink-0" />
@@ -65,7 +120,7 @@ export function DailyQuest() {
           ))}
         </div>
 
-        {progressPercentage === 100 && (
+        {progressPercentage === 100 && goals.length > 0 && (
           <div className="mt-4 p-4 bg-secondary/10 rounded-lg text-center">
             <p className="text-sm font-medium text-secondary">
               🎉 오늘의 모든 목표를 달성했어요!
@@ -73,6 +128,14 @@ export function DailyQuest() {
           </div>
         )}
       </CardContent>
+      <CardFooter className="border-t pt-4">
+        <Link href="/roadmap" className="w-full">
+          <Button variant="outline" className="w-full">
+            <ExternalLink className="h-4 w-4 mr-2" />
+            로드맵 자세히 보기
+          </Button>
+        </Link>
+      </CardFooter>
     </Card>
   )
 }
