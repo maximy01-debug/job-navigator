@@ -1,9 +1,12 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Target, LayoutDashboard, FolderKanban, Calendar } from "lucide-react"
+import { Target, LayoutDashboard, FolderKanban, Calendar, LogOut, User } from "lucide-react"
+import { getCurrentUser, signOut } from "@/lib/supabase/auth"
+import { createClient } from "@/lib/supabase/client"
 
 const navigation = [
   { name: '대시보드', href: '/', icon: LayoutDashboard },
@@ -14,6 +17,34 @@ const navigation = [
 
 export function Header() {
   const pathname = usePathname()
+  const router = useRouter()
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    // 초기 사용자 정보 가져오기
+    getCurrentUser().then((currentUser) => {
+      setUser(currentUser)
+      setLoading(false)
+    })
+
+    // 인증 상태 변경 감지
+    const supabase = createClient()
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const handleSignOut = async () => {
+    await signOut()
+    setUser(null)
+    router.push("/auth/login")
+    router.refresh()
+  }
 
   return (
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
@@ -49,9 +80,40 @@ export function Header() {
           </div>
 
           <div className="flex items-center space-x-4">
-            <Button variant="outline" size="sm">
-              로그인
-            </Button>
+            {loading ? (
+              <div className="h-9 w-20 bg-muted animate-pulse rounded-md" />
+            ) : user ? (
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-muted">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">
+                    {user.user_metadata?.name || user.email?.split('@')[0]}
+                  </span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSignOut}
+                  className="flex items-center space-x-2"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>로그아웃</span>
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <Link href="/auth/login">
+                  <Button variant="outline" size="sm">
+                    로그인
+                  </Button>
+                </Link>
+                <Link href="/auth/signup">
+                  <Button size="sm">
+                    회원가입
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </div>
