@@ -260,12 +260,10 @@ export default function AdminDashboardPage() {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <label htmlFor={`photo-${student.student_number}`}>
-                      <Button size="sm" variant="outline" asChild>
-                        <span className="cursor-pointer">
-                          <ImageIcon className="h-4 w-4 mr-2" />
-                          {photos[student.student_number] ? "사진 변경" : "사진 업로드"}
-                        </span>
+                    <label htmlFor={`photo-${student.student_number}`} className="cursor-pointer">
+                      <Button size="sm" variant="outline" type="button">
+                        <ImageIcon className="h-4 w-4 mr-2" />
+                        {photos[student.student_number] ? "사진 변경" : "사진 업로드"}
                       </Button>
                     </label>
                     <input
