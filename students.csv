@@ -1,0 +1,26 @@
+student_number,name,password,first_login,is_data_confirmed,department,class_name,gender,clubs_joined,parent_share_consent,photo
+1,김민준,student1,TRUE,FALSE,사무회계과,9반,남,과학탐구동아리,No,https://api.school.edu/photos/1.jpg
+2,이서연,student2,TRUE,FALSE,사무회계과,10반,여,과학탐구동아리,No,https://api.school.edu/photos/2.jpg
+3,박준혁,student3,TRUE,FALSE,사무회계과,11반,남,과학탐구동아리,No,https://api.school.edu/photos/3.jpg
+4,최지우,student4,TRUE,FALSE,사무회계과,9반,여,과학탐구동아리,No,https://api.school.edu/photos/4.jpg
+5,정하은,student5,TRUE,FALSE,물류유통과,5반,여,과학탐구동아리,No,https://api.school.edu/photos/5.jpg
+6,강도윤,student6,TRUE,FALSE,물류유통과,5반,남,독서토론동아리,No,https://api.school.edu/photos/6.jpg
+7,조민서,student7,TRUE,FALSE,사무회계과,12반,여,독서토론동아리,No,https://api.school.edu/photos/7.jpg
+8,윤서준,student8,TRUE,FALSE,물류유통과,6반,남,독서토론동아리,No,https://api.school.edu/photos/8.jpg
+9,임수아,student9,TRUE,FALSE,물류유통과,6반,여,독서토론동아리,No,https://api.school.edu/photos/9.jpg
+10,한지훈,student10,TRUE,FALSE,물류유통과,7반,남,독서토론동아리,No,https://api.school.edu/photos/10.jpg
+11,김예진,student11,TRUE,FALSE,일반과,1반,여,봉사활동동아리,No,https://api.school.edu/photos/11.jpg
+12,오호준,student12,TRUE,FALSE,디자인콘텐츠과,1반,남,봉사활동동아리,No,https://api.school.edu/photos/12.jpg
+13,장서윤,student13,TRUE,FALSE,디자인콘텐츠과,2반,여,봉사활동동아리,No,https://api.school.edu/photos/13.jpg
+14,신수호,student14,TRUE,FALSE,디자인콘텐츠과,3반,남,봉사활동동아리,No,https://api.school.edu/photos/14.jpg
+15,권유나,student15,TRUE,FALSE,디자인콘텐츠과,2반,여,봉사활동동아리,No,https://api.school.edu/photos/15.jpg
+16,배준우,student16,TRUE,FALSE,일반과,1반,남,문화예술동아리,No,https://api.school.edu/photos/16.jpg
+17,노서현,student17,TRUE,FALSE,일반과,1반,여,문화예술동아리,No,https://api.school.edu/photos/17.jpg
+18,문채원,student18,TRUE,FALSE,소프트웨어개발과,5반,여,문화예술동아리,No,https://api.school.edu/photos/18.jpg
+19,송민재,student19,TRUE,FALSE,일반과,1반,남,문화예술동아리,No,https://api.school.edu/photos/19.jpg
+20,서아린,student20,TRUE,FALSE,소프트웨어개발과,4반,여,문화예술동아리,No,https://api.school.edu/photos/20.jpg
+21,나현우,student21,TRUE,FALSE,소프트웨어개발과,4반,남,스포츠동아리,No,https://api.school.edu/photos/21.jpg
+22,안지유,student22,TRUE,FALSE,일반과,1반,여,"독서토론동아리, 봉사활동동아리",No,https://api.school.edu/photos/22.jpg
+23,유다은,student23,TRUE,FALSE,광고미디어디자인과,6반,여,스포츠동아리,No,https://api.school.edu/photos/23.jpg
+24,하준석,student24,TRUE,FALSE,일반과,1반,남,스포츠동아리,No,https://api.school.edu/photos/24.jpg
+25,차수빈,student25,TRUE,FALSE,광고미디어디자인과,7반,여,스포츠동아리,No,https://api.school.edu/photos/25.jpg
