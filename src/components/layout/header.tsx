@@ -99,7 +99,7 @@ export function Header() {
               </div>
             ) : (
               <div className="flex items-center space-x-2">
-                <Link href="/auth/login">
+                <Link href="/auth/select">
                   <Button variant="outline" size="sm">
                     로그인
                   </Button>

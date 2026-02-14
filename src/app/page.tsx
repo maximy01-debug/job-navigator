@@ -9,17 +9,25 @@ import { ActivityFeed } from "@/components/dashboard/activity-feed"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { Target, Trophy, Briefcase, Calendar, TrendingUp } from "lucide-react"
+import { Target, Trophy, Briefcase, Calendar, TrendingUp, User } from "lucide-react"
 import { getCurrentStudent } from "@/lib/supabase/auth"
+import { getStudentPhoto } from "@/lib/students/storage"
 import type { Student } from "@/lib/students/data"
 
 export default function DashboardPage() {
   const [student, setStudent] = useState<Student | null>(null)
+  const [studentPhoto, setStudentPhoto] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const currentStudent = getCurrentStudent()
     setStudent(currentStudent)
+
+    if (currentStudent) {
+      const photo = getStudentPhoto(currentStudent.student_number)
+      setStudentPhoto(photo)
+    }
+
     setLoading(false)
   }, [])
 
@@ -33,19 +41,37 @@ export default function DashboardPage() {
           {loading ? (
             <h1 className="text-3xl font-bold mb-2">로딩 중...</h1>
           ) : student ? (
-            <>
-              <h1 className="text-3xl font-bold mb-2">안녕하세요, {student.name}님! 👋</h1>
-              <p className="text-muted-foreground">
-                {student.department} {student.class_name} - 오늘도 성장을 향해 한 걸음 나아가봐요.
-              </p>
-            </>
+            <div className="flex items-center space-x-6">
+              {/* Student Photo */}
+              <div className="h-24 w-24 rounded-full bg-muted flex items-center justify-center overflow-hidden flex-shrink-0 border-4 border-primary">
+                {studentPhoto ? (
+                  <img
+                    src={studentPhoto}
+                    alt={student.name}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <User className="h-12 w-12 text-muted-foreground" />
+                )}
+              </div>
+              {/* Welcome Message */}
+              <div>
+                <h1 className="text-3xl font-bold mb-2">안녕하세요, {student.name}님! 👋</h1>
+                <p className="text-muted-foreground">
+                  {student.department} {student.class_name} | 학생번호: {student.student_number}
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  오늘도 성장을 향해 한 걸음 나아가봐요.
+                </p>
+              </div>
+            </div>
           ) : (
             <>
               <h1 className="text-3xl font-bold mb-2">로그인 해주세요 🔐</h1>
               <p className="text-muted-foreground mb-4">
                 Job Navigator를 이용하려면 로그인이 필요합니다.
               </p>
-              <Link href="/auth/login">
+              <Link href="/auth/select">
                 <Button>로그인하기</Button>
               </Link>
             </>
