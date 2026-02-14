@@ -15,35 +15,49 @@ interface DailyGoal {
   date: string
 }
 
-// Mock data - 최근 7일간의 목표
-const mockGoalsHistory = [
-  {
-    date: '2026-02-15',
-    goals: [
-      { id: '1', content: 'JavaScript 배열 메서드 복습하기', isCompleted: true, date: '2026-02-15' },
-      { id: '2', content: 'React 컴포넌트 3개 만들기', isCompleted: true, date: '2026-02-15' },
-      { id: '3', content: '알고리즘 문제 2개 풀기', isCompleted: false, date: '2026-02-15' }
-    ]
-  },
-  {
-    date: '2026-02-14',
-    goals: [
-      { id: '4', content: 'CSS Grid 레이아웃 학습', isCompleted: true, date: '2026-02-14' },
-      { id: '5', content: '프로젝트 README 작성', isCompleted: true, date: '2026-02-14' },
-      { id: '6', content: 'Git 명령어 정리', isCompleted: true, date: '2026-02-14' }
-    ]
-  },
-  {
-    date: '2026-02-13',
-    goals: [
-      { id: '7', content: 'TypeScript 기초 문법', isCompleted: true, date: '2026-02-13' },
-      { id: '8', content: 'Next.js 튜토리얼 따라하기', isCompleted: false, date: '2026-02-13' },
-      { id: '9', content: '코드 리뷰 반영', isCompleted: true, date: '2026-02-13' }
-    ]
-  }
-]
+// Mock data - 동적으로 현재 날짜 기준 생성
+const getMockGoalsHistory = () => {
+  const now = new Date()
+  const formatDate = (date: Date) => date.toISOString().split('T')[0]
+
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
+  const twoDaysAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 2)
+
+  const todayStr = formatDate(today)
+  const yesterdayStr = formatDate(yesterday)
+  const twoDaysAgoStr = formatDate(twoDaysAgo)
+
+  return [
+    {
+      date: todayStr,
+      goals: [
+        { id: '1', content: 'JavaScript 배열 메서드 복습하기', isCompleted: true, date: todayStr },
+        { id: '2', content: 'React 컴포넌트 3개 만들기', isCompleted: true, date: todayStr },
+        { id: '3', content: '알고리즘 문제 2개 풀기', isCompleted: false, date: todayStr }
+      ]
+    },
+    {
+      date: yesterdayStr,
+      goals: [
+        { id: '4', content: 'CSS Grid 레이아웃 학습', isCompleted: true, date: yesterdayStr },
+        { id: '5', content: '프로젝트 README 작성', isCompleted: true, date: yesterdayStr },
+        { id: '6', content: 'Git 명령어 정리', isCompleted: true, date: yesterdayStr }
+      ]
+    },
+    {
+      date: twoDaysAgoStr,
+      goals: [
+        { id: '7', content: 'TypeScript 기초 문법', isCompleted: true, date: twoDaysAgoStr },
+        { id: '8', content: 'Next.js 튜토리얼 따라하기', isCompleted: false, date: twoDaysAgoStr },
+        { id: '9', content: '코드 리뷰 반영', isCompleted: true, date: twoDaysAgoStr }
+      ]
+    }
+  ]
+}
 
 export default function DailyGoalsPage() {
+  const mockGoalsHistory = getMockGoalsHistory()
   const [todayGoals, setTodayGoals] = useState<DailyGoal[]>(mockGoalsHistory[0].goals)
   const [newGoal, setNewGoal] = useState("")
 

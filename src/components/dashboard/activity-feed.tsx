@@ -13,34 +13,44 @@ interface Activity {
   completed?: boolean
 }
 
-const mockActivities: Activity[] = [
-  {
-    id: '1',
-    type: 'goal',
-    title: '오늘의 목표 달성',
-    description: 'Python 기초 문법 학습 완료',
-    timestamp: new Date(2026, 1, 15, 14, 30),
-    completed: true
-  },
-  {
-    id: '2',
-    type: 'project',
-    title: '프로젝트 업로드',
-    description: '날씨 앱 프로젝트 포트폴리오 추가',
-    timestamp: new Date(2026, 1, 14, 16, 0),
-    completed: true
-  },
-  {
-    id: '3',
-    type: 'roadmap',
-    title: '로드맵 목표 완료',
-    description: '정보처리기능사 필기 시험 합격',
-    timestamp: new Date(2026, 1, 13, 10, 0),
-    completed: true
-  }
-]
+// 동적으로 현재 날짜 기준 생성
+const getMockActivities = (): Activity[] => {
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 14, 30)
+  const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 16, 0)
+  const twoDaysAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 2, 10, 0)
+
+  return [
+    {
+      id: '1',
+      type: 'goal',
+      title: '오늘의 목표 달성',
+      description: 'Python 기초 문법 학습 완료',
+      timestamp: today,
+      completed: true
+    },
+    {
+      id: '2',
+      type: 'project',
+      title: '프로젝트 업로드',
+      description: '날씨 앱 프로젝트 포트폴리오 추가',
+      timestamp: yesterday,
+      completed: true
+    },
+    {
+      id: '3',
+      type: 'roadmap',
+      title: '로드맵 목표 완료',
+      description: '정보처리기능사 필기 시험 합격',
+      timestamp: twoDaysAgo,
+      completed: true
+    }
+  ]
+}
 
 export function ActivityFeed() {
+  const mockActivities = getMockActivities()
+
   const getActivityIcon = (type: Activity['type'], completed?: boolean) => {
     if (type === 'goal') {
       return completed ? (
