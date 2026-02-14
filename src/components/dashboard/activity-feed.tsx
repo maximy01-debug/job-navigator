@@ -19,7 +19,7 @@ const mockActivities: Activity[] = [
     type: 'goal',
     title: '오늘의 목표 달성',
     description: 'Python 기초 문법 학습 완료',
-    timestamp: new Date(2024, 1, 14, 14, 30),
+    timestamp: new Date(2026, 1, 15, 14, 30),
     completed: true
   },
   {
@@ -27,7 +27,7 @@ const mockActivities: Activity[] = [
     type: 'project',
     title: '프로젝트 업로드',
     description: '날씨 앱 프로젝트 포트폴리오 추가',
-    timestamp: new Date(2024, 1, 13, 16, 0),
+    timestamp: new Date(2026, 1, 14, 16, 0),
     completed: true
   },
   {
@@ -35,7 +35,7 @@ const mockActivities: Activity[] = [
     type: 'roadmap',
     title: '로드맵 목표 완료',
     description: '정보처리기능사 필기 시험 합격',
-    timestamp: new Date(2024, 1, 12, 10, 0),
+    timestamp: new Date(2026, 1, 13, 10, 0),
     completed: true
   }
 ]

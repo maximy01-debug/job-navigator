@@ -18,27 +18,27 @@ interface DailyGoal {
 // Mock data - 최근 7일간의 목표
 const mockGoalsHistory = [
   {
-    date: '2024-02-14',
+    date: '2026-02-15',
     goals: [
-      { id: '1', content: 'JavaScript 배열 메서드 복습하기', isCompleted: true, date: '2024-02-14' },
-      { id: '2', content: 'React 컴포넌트 3개 만들기', isCompleted: true, date: '2024-02-14' },
-      { id: '3', content: '알고리즘 문제 2개 풀기', isCompleted: false, date: '2024-02-14' }
+      { id: '1', content: 'JavaScript 배열 메서드 복습하기', isCompleted: true, date: '2026-02-15' },
+      { id: '2', content: 'React 컴포넌트 3개 만들기', isCompleted: true, date: '2026-02-15' },
+      { id: '3', content: '알고리즘 문제 2개 풀기', isCompleted: false, date: '2026-02-15' }
     ]
   },
   {
-    date: '2024-02-13',
+    date: '2026-02-14',
     goals: [
-      { id: '4', content: 'CSS Grid 레이아웃 학습', isCompleted: true, date: '2024-02-13' },
-      { id: '5', content: '프로젝트 README 작성', isCompleted: true, date: '2024-02-13' },
-      { id: '6', content: 'Git 명령어 정리', isCompleted: true, date: '2024-02-13' }
+      { id: '4', content: 'CSS Grid 레이아웃 학습', isCompleted: true, date: '2026-02-14' },
+      { id: '5', content: '프로젝트 README 작성', isCompleted: true, date: '2026-02-14' },
+      { id: '6', content: 'Git 명령어 정리', isCompleted: true, date: '2026-02-14' }
     ]
   },
   {
-    date: '2024-02-12',
+    date: '2026-02-13',
     goals: [
-      { id: '7', content: 'TypeScript 기초 문법', isCompleted: true, date: '2024-02-12' },
-      { id: '8', content: 'Next.js 튜토리얼 따라하기', isCompleted: false, date: '2024-02-12' },
-      { id: '9', content: '코드 리뷰 반영', isCompleted: true, date: '2024-02-12' }
+      { id: '7', content: 'TypeScript 기초 문법', isCompleted: true, date: '2026-02-13' },
+      { id: '8', content: 'Next.js 튜토리얼 따라하기', isCompleted: false, date: '2026-02-13' },
+      { id: '9', content: '코드 리뷰 반영', isCompleted: true, date: '2026-02-13' }
     ]
   }
 ]
