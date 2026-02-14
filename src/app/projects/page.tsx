@@ -177,20 +177,30 @@ export default function ProjectsPage() {
                 {/* Links */}
                 <div className="flex gap-2 pt-2">
                   {project.githubUrl && (
-                    <Button variant="outline" size="sm" className="flex-1" asChild>
-                      <a href={project.githubUrl} target="_blank" rel="noopener noreferrer">
+                    <a
+                      href={project.githubUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1"
+                    >
+                      <Button variant="outline" size="sm" className="w-full">
                         <Github className="h-4 w-4 mr-2" />
                         GitHub
-                      </a>
-                    </Button>
+                      </Button>
+                    </a>
                   )}
                   {project.liveUrl && (
-                    <Button size="sm" className="flex-1" asChild>
-                      <a href={project.liveUrl} target="_blank" rel="noopener noreferrer">
+                    <a
+                      href={project.liveUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1"
+                    >
+                      <Button size="sm" className="w-full">
                         <Globe className="h-4 w-4 mr-2" />
                         Live Demo
-                      </a>
-                    </Button>
+                      </Button>
+                    </a>
                   )}
                   {!project.liveUrl && project.githubUrl && (
                     <Button size="sm" className="flex-1" disabled>
