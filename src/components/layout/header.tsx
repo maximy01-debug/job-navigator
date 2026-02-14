@@ -5,8 +5,8 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Target, LayoutDashboard, FolderKanban, Calendar, LogOut, User } from "lucide-react"
-import { getCurrentUser, signOut } from "@/lib/supabase/auth"
-import { createClient } from "@/lib/supabase/client"
+import { getCurrentStudent, signOutStudent } from "@/lib/supabase/auth"
+import type { Student } from "@/lib/students/data"
 
 const navigation = [
   { name: '대시보드', href: '/', icon: LayoutDashboard },
@@ -18,30 +18,27 @@ const navigation = [
 export function Header() {
   const pathname = usePathname()
   const router = useRouter()
-  const [user, setUser] = useState<any>(null)
+  const [student, setStudent] = useState<Student | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // 초기 사용자 정보 가져오기
-    getCurrentUser().then((currentUser) => {
-      setUser(currentUser)
-      setLoading(false)
-    })
+    // 초기 학생 정보 가져오기
+    const currentStudent = getCurrentStudent()
+    setStudent(currentStudent)
+    setLoading(false)
 
-    // 인증 상태 변경 감지
-    const supabase = createClient()
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-    })
+    // 스토리지 변경 감지 (다른 탭에서 로그인/로그아웃 시)
+    const handleStorageChange = () => {
+      setStudent(getCurrentStudent())
+    }
 
-    return () => subscription.unsubscribe()
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
   }, [])
 
-  const handleSignOut = async () => {
-    await signOut()
-    setUser(null)
+  const handleSignOut = () => {
+    signOutStudent()
+    setStudent(null)
     router.push("/auth/login")
     router.refresh()
   }
@@ -82,12 +79,12 @@ export function Header() {
           <div className="flex items-center space-x-4">
             {loading ? (
               <div className="h-9 w-20 bg-muted animate-pulse rounded-md" />
-            ) : user ? (
+            ) : student ? (
               <div className="flex items-center space-x-3">
                 <div className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-muted">
                   <User className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm font-medium">
-                    {user.user_metadata?.name || user.email?.split('@')[0]}
+                    {student.name} ({student.department} {student.class_name})
                   </span>
                 </div>
                 <Button
@@ -105,11 +102,6 @@ export function Header() {
                 <Link href="/auth/login">
                   <Button variant="outline" size="sm">
                     로그인
-                  </Button>
-                </Link>
-                <Link href="/auth/signup">
-                  <Button size="sm">
-                    회원가입
                   </Button>
                 </Link>
               </div>

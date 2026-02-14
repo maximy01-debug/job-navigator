@@ -1,5 +1,7 @@
 "use client"
 
+import { useState, useEffect } from "react"
+import Link from "next/link"
 import { Header } from "@/components/layout/header"
 import { StatsCard } from "@/components/dashboard/stats-card"
 import { DailyQuest } from "@/components/dashboard/daily-quest"
@@ -8,8 +10,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Target, Trophy, Briefcase, Calendar, TrendingUp } from "lucide-react"
+import { getCurrentStudent } from "@/lib/supabase/auth"
+import type { Student } from "@/lib/students/data"
 
 export default function DashboardPage() {
+  const [student, setStudent] = useState<Student | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const currentStudent = getCurrentStudent()
+    setStudent(currentStudent)
+    setLoading(false)
+  }, [])
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
       <Header />
@@ -17,10 +30,26 @@ export default function DashboardPage() {
       <main className="container mx-auto px-4 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">안녕하세요, 김철수님! 👋</h1>
-          <p className="text-muted-foreground">
-            오늘도 성장을 향해 한 걸음 나아가봐요.
-          </p>
+          {loading ? (
+            <h1 className="text-3xl font-bold mb-2">로딩 중...</h1>
+          ) : student ? (
+            <>
+              <h1 className="text-3xl font-bold mb-2">안녕하세요, {student.name}님! 👋</h1>
+              <p className="text-muted-foreground">
+                {student.department} {student.class_name} - 오늘도 성장을 향해 한 걸음 나아가봐요.
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 className="text-3xl font-bold mb-2">로그인 해주세요 🔐</h1>
+              <p className="text-muted-foreground mb-4">
+                Job Navigator를 이용하려면 로그인이 필요합니다.
+              </p>
+              <Link href="/auth/login">
+                <Button>로그인하기</Button>
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Stats Grid */}
