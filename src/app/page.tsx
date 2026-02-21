@@ -158,10 +158,12 @@ export default function DashboardPage() {
             </div>
 
             <div className="pt-4 flex justify-end">
-              <Button>
-                <Target className="h-4 w-4 mr-2" />
-                로드맵 자세히 보기
-              </Button>
+              <Link href="/roadmap">
+                <Button>
+                  <Target className="h-4 w-4 mr-2" />
+                  로드맵 자세히 보기
+                </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>
