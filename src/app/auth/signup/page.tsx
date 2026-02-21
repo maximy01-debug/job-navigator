@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Target, CheckCircle2 } from "lucide-react"
-import { addStudent, getAllStudents } from "@/lib/students/storage"
+import { Target, CheckCircle2, Camera, User } from "lucide-react"
+import { addStudent, getAllStudents, saveStudentPhoto } from "@/lib/students/storage"
 import type { Student } from "@/lib/students/data"
 
 const DEPARTMENTS = [
@@ -31,6 +31,7 @@ export default function SignUpPage() {
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [photoBase64, setPhotoBase64] = useState<string | null>(null)
 
   // CSV 1행(헤더) 기준 필드
   const [form, setForm] = useState({
@@ -46,6 +47,16 @@ export default function SignUpPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value })
+  }
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      setPhotoBase64(reader.result as string)
+    }
+    reader.readAsDataURL(file)
   }
 
   const handleClubToggle = (club: string) => {
@@ -108,6 +119,11 @@ export default function SignUpPage() {
       setError("회원가입에 실패했습니다. 다시 시도해주세요.")
       setLoading(false)
       return
+    }
+
+    // 사진 업로드 시 관리자 학생사진 저장소에 저장
+    if (photoBase64) {
+      saveStudentPhoto(studentNum, photoBase64)
     }
 
     setSuccess(true)
@@ -287,6 +303,52 @@ export default function SignUpPage() {
                 <option value="No">동의 안함 (No)</option>
                 <option value="Yes">동의함 (Yes)</option>
               </select>
+            </div>
+
+            {/* photo */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">프로필 사진 (선택)</label>
+              <div className="flex items-center gap-4">
+                {/* 미리보기 */}
+                <div className="h-20 w-20 rounded-full border-2 border-dashed border-border flex items-center justify-center overflow-hidden bg-muted flex-shrink-0">
+                  {photoBase64 ? (
+                    <img src={photoBase64} alt="미리보기" className="h-full w-full object-cover" />
+                  ) : (
+                    <User className="h-8 w-8 text-muted-foreground" />
+                  )}
+                </div>
+                <div className="flex-1 space-y-1">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => document.getElementById('photo-upload')?.click()}
+                  >
+                    <Camera className="h-4 w-4 mr-2" />
+                    {photoBase64 ? "사진 변경" : "사진 업로드"}
+                  </Button>
+                  <input
+                    id="photo-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handlePhotoChange}
+                  />
+                  {photoBase64 && (
+                    <button
+                      type="button"
+                      onClick={() => setPhotoBase64(null)}
+                      className="text-xs text-muted-foreground hover:text-red-500 w-full text-center"
+                    >
+                      사진 삭제
+                    </button>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    업로드한 사진은 관리자 학생사진 폴더에 저장됩니다
+                  </p>
+                </div>
+              </div>
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
