@@ -71,9 +71,14 @@ export default function DashboardPage() {
               <p className="text-muted-foreground mb-4">
                 Job Navigator를 이용하려면 로그인이 필요합니다.
               </p>
-              <Link href="/auth/select">
-                <Button>로그인하기</Button>
-              </Link>
+              <div className="flex gap-3">
+                <Link href="/auth/select">
+                  <Button>로그인하기</Button>
+                </Link>
+                <Link href="/auth/signup">
+                  <Button variant="outline">회원가입</Button>
+                </Link>
+              </div>
             </>
           )}
         </div>
