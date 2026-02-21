@@ -7,89 +7,100 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Plus, Target, TrendingUp } from "lucide-react"
 
-// Mock data
-const roadmapItems = [
-  {
-    id: '1',
-    grade: 1 as const,
-    title: 'HTML/CSS 기초 마스터',
-    description: '웹 개발의 기초인 HTML과 CSS를 완벽하게 학습합니다. 반응형 웹 디자인까지 포함.',
-    status: 'completed' as const,
-    targetDate: new Date(2023, 5, 30)
-  },
-  {
-    id: '2',
-    grade: 1 as const,
-    title: '정보처리기능사 자격증 취득',
-    description: '필기 시험 합격 후 실기 시험 준비 및 합격',
-    status: 'completed' as const,
-    targetDate: new Date(2023, 8, 15)
-  },
-  {
-    id: '3',
-    grade: 1 as const,
-    title: 'JavaScript 기초 학습',
-    description: '변수, 함수, DOM 조작 등 JavaScript 기본 문법 학습',
-    status: 'completed' as const,
-    targetDate: new Date(2023, 11, 20)
-  },
-  {
-    id: '4',
-    grade: 2 as const,
-    title: 'React 프레임워크 학습',
-    description: '컴포넌트 기반 개발, Hooks, 상태 관리 학습',
-    status: 'in_progress' as const,
-    targetDate: new Date(2024, 2, 30)
-  },
-  {
-    id: '5',
-    grade: 2 as const,
-    title: '팀 프로젝트 참여',
-    description: '학교 동아리 웹사이트 리뉴얼 프로젝트 참여',
-    status: 'in_progress' as const,
-    targetDate: new Date(2024, 4, 15)
-  },
-  {
-    id: '6',
-    grade: 2 as const,
-    title: '지역 공모전 참가',
-    description: '앱/웹 개발 공모전 출품 및 수상 목표',
-    status: 'pending' as const,
-    targetDate: new Date(2024, 6, 30)
-  },
-  {
-    id: '7',
-    grade: 2 as const,
-    title: '정보처리산업기사 필기 합격',
-    description: '2급 자격증 취득을 위한 필기 시험 합격',
-    status: 'pending' as const,
-    targetDate: new Date(2024, 8, 10)
-  },
-  {
-    id: '8',
-    grade: 3 as const,
-    title: '포트폴리오 웹사이트 완성',
-    description: '그동안의 프로젝트를 정리한 개인 포트폴리오 사이트 제작',
-    status: 'pending' as const,
-    targetDate: new Date(2024, 11, 30)
-  },
-  {
-    id: '9',
-    grade: 3 as const,
-    title: '기업 연계 프로젝트 참여',
-    description: '지역 기업과 협력하여 실제 프로젝트 개발 경험',
-    status: 'pending' as const,
-    targetDate: new Date(2025, 2, 15)
-  },
-  {
-    id: '10',
-    grade: 3 as const,
-    title: '취업 박람회 참가 및 면접',
-    description: '목표 기업 선정 및 채용 프로세스 진행',
-    status: 'pending' as const,
-    targetDate: new Date(2025, 4, 30)
-  }
-]
+// 현재 날짜 기준으로 동적 생성
+const getRoadmapItems = () => {
+  const now = new Date()
+  const y = now.getFullYear()
+  const m = now.getMonth()
+
+  return [
+    // 1학년 - 완료 (약 2년 전)
+    {
+      id: '1',
+      grade: 1 as const,
+      title: 'HTML/CSS 기초 마스터',
+      description: '웹 개발의 기초인 HTML과 CSS를 완벽하게 학습합니다. 반응형 웹 디자인까지 포함.',
+      status: 'completed' as const,
+      targetDate: new Date(y - 2, 5, 30)
+    },
+    {
+      id: '2',
+      grade: 1 as const,
+      title: '정보처리기능사 자격증 취득',
+      description: '필기 시험 합격 후 실기 시험 준비 및 합격',
+      status: 'completed' as const,
+      targetDate: new Date(y - 2, 8, 15)
+    },
+    {
+      id: '3',
+      grade: 1 as const,
+      title: 'JavaScript 기초 학습',
+      description: '변수, 함수, DOM 조작 등 JavaScript 기본 문법 학습',
+      status: 'completed' as const,
+      targetDate: new Date(y - 2, 11, 20)
+    },
+    // 2학년 - 완료/진행중 (약 1년 전 ~ 현재)
+    {
+      id: '4',
+      grade: 2 as const,
+      title: 'React 프레임워크 학습',
+      description: '컴포넌트 기반 개발, Hooks, 상태 관리 학습',
+      status: 'completed' as const,
+      targetDate: new Date(y - 1, 2, 28)
+    },
+    {
+      id: '5',
+      grade: 2 as const,
+      title: '팀 프로젝트 참여',
+      description: '학교 동아리 웹사이트 리뉴얼 프로젝트 참여',
+      status: 'in_progress' as const,
+      targetDate: new Date(y, m + 2, 15)
+    },
+    {
+      id: '6',
+      grade: 2 as const,
+      title: '지역 공모전 참가',
+      description: '앱/웹 개발 공모전 출품 및 수상 목표',
+      status: 'pending' as const,
+      targetDate: new Date(y, m + 4, 30)
+    },
+    {
+      id: '7',
+      grade: 2 as const,
+      title: '정보처리산업기사 필기 합격',
+      description: '2급 자격증 취득을 위한 필기 시험 합격',
+      status: 'pending' as const,
+      targetDate: new Date(y, m + 6, 10)
+    },
+    // 3학년 - 예정 (미래)
+    {
+      id: '8',
+      grade: 3 as const,
+      title: '포트폴리오 웹사이트 완성',
+      description: '그동안의 프로젝트를 정리한 개인 포트폴리오 사이트 제작',
+      status: 'pending' as const,
+      targetDate: new Date(y + 1, 1, 28)
+    },
+    {
+      id: '9',
+      grade: 3 as const,
+      title: '기업 연계 프로젝트 참여',
+      description: '지역 기업과 협력하여 실제 프로젝트 개발 경험',
+      status: 'pending' as const,
+      targetDate: new Date(y + 1, 5, 15)
+    },
+    {
+      id: '10',
+      grade: 3 as const,
+      title: '취업 박람회 참가 및 면접',
+      description: '목표 기업 선정 및 채용 프로세스 진행',
+      status: 'pending' as const,
+      targetDate: new Date(y + 1, 9, 30)
+    }
+  ]
+}
+
+const roadmapItems = getRoadmapItems()
 
 export default function RoadmapPage() {
   const totalItems = roadmapItems.length

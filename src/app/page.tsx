@@ -173,12 +173,23 @@ export default function DashboardPage() {
               <div>
                 <h3 className="text-lg font-semibold mb-1">다가오는 목표</h3>
                 <p className="text-sm text-muted-foreground">
-                  정보처리산업기사 필기 시험
+                  팀 프로젝트 참여 마감
                 </p>
               </div>
               <div className="text-center">
-                <div className="text-4xl font-bold text-primary">D-30</div>
-                <p className="text-xs text-muted-foreground mt-1">2024년 3월 15일</p>
+                {(() => {
+                  const now = new Date()
+                  const target = new Date(now.getFullYear(), now.getMonth() + 2, 15)
+                  const diff = Math.ceil((target.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+                  return (
+                    <>
+                      <div className="text-4xl font-bold text-primary">D-{diff}</div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {target.getFullYear()}년 {target.getMonth() + 1}월 {target.getDate()}일
+                      </p>
+                    </>
+                  )
+                })()}
               </div>
             </div>
           </CardContent>
