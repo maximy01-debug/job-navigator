@@ -104,6 +104,11 @@ export function Header() {
                     로그인
                   </Button>
                 </Link>
+                <Link href="/auth/signup">
+                  <Button size="sm">
+                    회원가입
+                  </Button>
+                </Link>
               </div>
             )}
           </div>
