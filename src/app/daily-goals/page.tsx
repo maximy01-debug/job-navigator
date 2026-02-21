@@ -1,102 +1,115 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Header } from "@/components/layout/header"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { CheckCircle2, Circle, Plus, Calendar as CalendarIcon, Trash2 } from "lucide-react"
 import { format } from "date-fns"
+import { DAILY_QUEST_KEY, type DailyGoal } from "@/components/dashboard/daily-quest"
 
-interface DailyGoal {
-  id: string
-  content: string
-  isCompleted: boolean
-  date: string
-}
+// 히스토리 키 (날짜별 과거 기록)
+const HISTORY_KEY = 'daily_goals_history'
 
-// Mock data - 동적으로 현재 날짜 기준 생성
-const getMockGoalsHistory = () => {
+const getTodayStr = () => new Date().toISOString().split('T')[0]
+
+// 과거 기록 Mock (히스토리 초기값)
+const getMockHistory = () => {
   const now = new Date()
-  const formatDate = (date: Date) => date.toISOString().split('T')[0]
-
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
-  const twoDaysAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 2)
-
-  const todayStr = formatDate(today)
-  const yesterdayStr = formatDate(yesterday)
-  const twoDaysAgoStr = formatDate(twoDaysAgo)
-
+  const fmt = (d: Date) => d.toISOString().split('T')[0]
+  const d1 = fmt(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1))
+  const d2 = fmt(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 2))
   return [
     {
-      date: todayStr,
+      date: d1,
       goals: [
-        { id: '1', content: 'JavaScript 배열 메서드 복습하기', isCompleted: true, date: todayStr },
-        { id: '2', content: 'React 컴포넌트 3개 만들기', isCompleted: true, date: todayStr },
-        { id: '3', content: '알고리즘 문제 2개 풀기', isCompleted: false, date: todayStr }
+        { id: 'h1', content: 'CSS Grid 레이아웃 학습', isCompleted: true, date: d1 },
+        { id: 'h2', content: '프로젝트 README 작성', isCompleted: true, date: d1 },
+        { id: 'h3', content: 'Git 명령어 정리', isCompleted: true, date: d1 },
       ]
     },
     {
-      date: yesterdayStr,
+      date: d2,
       goals: [
-        { id: '4', content: 'CSS Grid 레이아웃 학습', isCompleted: true, date: yesterdayStr },
-        { id: '5', content: '프로젝트 README 작성', isCompleted: true, date: yesterdayStr },
-        { id: '6', content: 'Git 명령어 정리', isCompleted: true, date: yesterdayStr }
-      ]
-    },
-    {
-      date: twoDaysAgoStr,
-      goals: [
-        { id: '7', content: 'TypeScript 기초 문법', isCompleted: true, date: twoDaysAgoStr },
-        { id: '8', content: 'Next.js 튜토리얼 따라하기', isCompleted: false, date: twoDaysAgoStr },
-        { id: '9', content: '코드 리뷰 반영', isCompleted: true, date: twoDaysAgoStr }
+        { id: 'h4', content: 'TypeScript 기초 문법', isCompleted: true, date: d2 },
+        { id: 'h5', content: 'Next.js 튜토리얼 따라하기', isCompleted: false, date: d2 },
+        { id: 'h6', content: '코드 리뷰 반영', isCompleted: true, date: d2 },
       ]
     }
   ]
 }
 
 export default function DailyGoalsPage() {
-  const mockGoalsHistory = getMockGoalsHistory()
-  const [todayGoals, setTodayGoals] = useState<DailyGoal[]>(mockGoalsHistory[0].goals)
+  const [todayGoals, setTodayGoals] = useState<DailyGoal[]>([])
+  const [history, setHistory] = useState(getMockHistory())
   const [newGoal, setNewGoal] = useState("")
 
   const today = format(new Date(), 'yyyy년 MM월 dd일')
-  const completedCount = todayGoals.filter(g => g.isCompleted).length
-  const progressPercentage = todayGoals.length > 0 ? (completedCount / todayGoals.length) * 100 : 0
+
+  // localStorage에서 오늘의 목표 로드 (dashboard_quests 공유)
+  const loadGoals = () => {
+    const stored = localStorage.getItem(DAILY_QUEST_KEY)
+    if (stored) {
+      try {
+        const parsed: DailyGoal[] = JSON.parse(stored)
+        const todayStr = getTodayStr()
+        setTodayGoals(parsed.map(g => ({ ...g, date: g.date || todayStr })))
+      } catch {}
+    }
+
+    // 히스토리 로드
+    const storedHistory = localStorage.getItem(HISTORY_KEY)
+    if (storedHistory) {
+      try { setHistory(JSON.parse(storedHistory)) } catch {}
+    }
+  }
+
+  useEffect(() => {
+    loadGoals()
+
+    // 대시보드에서 변경 시 실시간 동기화
+    const handleStorage = () => loadGoals()
+    window.addEventListener('storage', handleStorage)
+    return () => window.removeEventListener('storage', handleStorage)
+  }, [])
+
+  // 목표 저장 (dashboard_quests 키에 저장 → 대시보드와 공유)
+  const saveGoals = (updated: DailyGoal[]) => {
+    setTodayGoals(updated)
+    localStorage.setItem(DAILY_QUEST_KEY, JSON.stringify(updated))
+    window.dispatchEvent(new Event('storage'))
+  }
 
   const handleAddGoal = () => {
-    if (newGoal.trim()) {
-      const goal: DailyGoal = {
-        id: Date.now().toString(),
-        content: newGoal,
-        isCompleted: false,
-        date: new Date().toISOString().split('T')[0]
-      }
-      setTodayGoals([...todayGoals, goal])
-      setNewGoal("")
+    if (!newGoal.trim()) return
+    const goal: DailyGoal = {
+      id: Date.now().toString(),
+      content: newGoal.trim(),
+      isCompleted: false,
+      date: getTodayStr(),
     }
+    saveGoals([...todayGoals, goal])
+    setNewGoal("")
   }
 
   const handleToggleGoal = (id: string) => {
-    setTodayGoals(todayGoals.map(goal =>
-      goal.id === id ? { ...goal, isCompleted: !goal.isCompleted } : goal
-    ))
+    saveGoals(todayGoals.map(g => g.id === id ? { ...g, isCompleted: !g.isCompleted } : g))
   }
 
   const handleDeleteGoal = (id: string) => {
-    setTodayGoals(todayGoals.filter(goal => goal.id !== id))
+    saveGoals(todayGoals.filter(g => g.id !== id))
   }
 
-  // 잔디 심기 데이터 (최근 30일)
+  const completedCount = todayGoals.filter(g => g.isCompleted).length
+  const progressPercentage = todayGoals.length > 0 ? (completedCount / todayGoals.length) * 100 : 0
+
+  // 잔디 데이터 (최근 30일)
   const grassData = Array.from({ length: 30 }, (_, i) => {
     const date = new Date()
     date.setDate(date.getDate() - (29 - i))
-    const completed = Math.random() > 0.3 // 70% 확률로 목표 달성
-    return {
-      date: date.toISOString().split('T')[0],
-      count: completed ? Math.floor(Math.random() * 3) + 1 : 0
-    }
+    const count = Math.random() > 0.3 ? Math.floor(Math.random() * 3) + 1 : 0
+    return { date: date.toISOString().split('T')[0], count }
   })
 
   return (
@@ -104,13 +117,12 @@ export default function DailyGoalsPage() {
       <Header />
 
       <main className="container mx-auto px-4 py-8">
-        {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
             📅 일일 목표 관리
           </h1>
           <p className="text-muted-foreground">
-            매일의 작은 목표를 달성하며 성장하세요
+            매일의 작은 목표를 달성하며 성장하세요 — 대시보드 '오늘의 퀘스트'와 실시간 동기화됩니다
           </p>
         </div>
 
@@ -123,7 +135,12 @@ export default function DailyGoalsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle>오늘의 목표 🎯</CardTitle>
-                    <CardDescription>{today}</CardDescription>
+                    <CardDescription>
+                      {today}
+                      <span className="ml-2 text-xs text-primary font-medium">
+                        ↔ 대시보드 '오늘의 퀘스트'와 동기화
+                      </span>
+                    </CardDescription>
                   </div>
                   <div className="text-right">
                     <div className="text-2xl font-bold text-primary">
@@ -142,7 +159,7 @@ export default function DailyGoalsPage() {
                     type="text"
                     value={newGoal}
                     onChange={(e) => setNewGoal(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleAddGoal()}
+                    onKeyDown={(e) => e.key === 'Enter' && handleAddGoal()}
                     placeholder="새로운 목표를 입력하세요..."
                     className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
                   />
@@ -159,23 +176,14 @@ export default function DailyGoalsPage() {
                       key={goal.id}
                       className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors group"
                     >
-                      <button
-                        onClick={() => handleToggleGoal(goal.id)}
-                        className="flex-shrink-0"
-                      >
+                      <button onClick={() => handleToggleGoal(goal.id)} className="flex-shrink-0">
                         {goal.isCompleted ? (
                           <CheckCircle2 className="h-5 w-5 text-secondary" />
                         ) : (
                           <Circle className="h-5 w-5 text-muted-foreground" />
                         )}
                       </button>
-                      <span
-                        className={`flex-1 text-sm ${
-                          goal.isCompleted
-                            ? 'line-through text-muted-foreground'
-                            : 'text-foreground'
-                        }`}
-                      >
+                      <span className={`flex-1 text-sm ${goal.isCompleted ? 'line-through text-muted-foreground' : ''}`}>
                         {goal.content}
                       </span>
                       <button
@@ -212,16 +220,15 @@ export default function DailyGoalsPage() {
                 <CardDescription>지난 며칠간의 목표 달성 현황</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {mockGoalsHistory.slice(1).map((history) => {
-                  const completed = history.goals.filter(g => g.isCompleted).length
-                  const total = history.goals.length
-                  const percent = (completed / total) * 100
-
+                {history.map((h) => {
+                  const completed = h.goals.filter(g => g.isCompleted).length
+                  const total = h.goals.length
+                  const percent = total > 0 ? (completed / total) * 100 : 0
                   return (
-                    <div key={history.date} className="space-y-2">
+                    <div key={h.date} className="space-y-2">
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium">
-                          {format(new Date(history.date), 'yyyy년 MM월 dd일')}
+                          {format(new Date(h.date + 'T00:00:00'), 'yyyy년 MM월 dd일')}
                         </span>
                         <span className="text-xs text-muted-foreground">
                           {completed}/{total} 완료
@@ -235,9 +242,9 @@ export default function DailyGoalsPage() {
             </Card>
           </div>
 
-          {/* Right Column - Stats & Grass */}
+          {/* Right Column */}
           <div className="space-y-6">
-            {/* Stats Cards */}
+            {/* Stats */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">이번 주 통계</CardTitle>
@@ -266,17 +273,14 @@ export default function DailyGoalsPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-10 gap-1">
-                  {grassData.map((day, index) => (
+                  {grassData.map((day, i) => (
                     <div
-                      key={index}
+                      key={i}
                       className={`aspect-square rounded-sm ${
-                        day.count === 0
-                          ? 'bg-muted'
-                          : day.count === 1
-                          ? 'bg-secondary/30'
-                          : day.count === 2
-                          ? 'bg-secondary/60'
-                          : 'bg-secondary'
+                        day.count === 0 ? 'bg-muted'
+                        : day.count === 1 ? 'bg-secondary/30'
+                        : day.count === 2 ? 'bg-secondary/60'
+                        : 'bg-secondary'
                       }`}
                       title={`${day.date}: ${day.count}개 완료`}
                     />
@@ -295,7 +299,7 @@ export default function DailyGoalsPage() {
               </CardContent>
             </Card>
 
-            {/* Motivation Card */}
+            {/* Motivation */}
             <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/20">
               <CardContent className="pt-6">
                 <div className="text-center space-y-2">

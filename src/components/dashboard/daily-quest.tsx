@@ -7,18 +7,21 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { CheckCircle2, Circle, Plus, ExternalLink, Trash2 } from "lucide-react"
 
-interface DailyGoal {
+export interface DailyGoal {
   id: string
   content: string
   isCompleted: boolean
+  date: string // yyyy-MM-dd
 }
 
-const STORAGE_KEY = 'dashboard_quests'
+export const DAILY_QUEST_KEY = 'dashboard_quests'
+
+const getTodayStr = () => new Date().toISOString().split('T')[0]
 
 const defaultGoals: DailyGoal[] = [
-  { id: '1', content: 'JavaScript 배열 메서드 복습하기', isCompleted: false },
-  { id: '2', content: 'React 컴포넌트 3개 만들기', isCompleted: false },
-  { id: '3', content: '알고리즘 문제 2개 풀기', isCompleted: false },
+  { id: '1', content: 'JavaScript 배열 메서드 복습하기', isCompleted: false, date: getTodayStr() },
+  { id: '2', content: 'React 컴포넌트 3개 만들기', isCompleted: false, date: getTodayStr() },
+  { id: '3', content: '알고리즘 문제 2개 풀기', isCompleted: false, date: getTodayStr() },
 ]
 
 export function DailyQuest() {
@@ -27,15 +30,22 @@ export function DailyQuest() {
   const [newGoal, setNewGoal] = useState("")
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY)
+    const stored = localStorage.getItem(DAILY_QUEST_KEY)
     if (stored) {
-      try { setGoals(JSON.parse(stored)) } catch {}
+      try {
+        const parsed: DailyGoal[] = JSON.parse(stored)
+        // date 필드 없는 기존 데이터 호환
+        const today = getTodayStr()
+        setGoals(parsed.map(g => ({ ...g, date: g.date || today })))
+      } catch {}
     }
   }, [])
 
   const saveGoals = (updated: DailyGoal[]) => {
     setGoals(updated)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
+    localStorage.setItem(DAILY_QUEST_KEY, JSON.stringify(updated))
+    // 다른 탭(일일목표 페이지)에도 변경 전파
+    window.dispatchEvent(new Event('storage'))
   }
 
   const toggleGoal = (id: string) => {
@@ -52,6 +62,7 @@ export function DailyQuest() {
       id: Date.now().toString(),
       content: newGoal.trim(),
       isCompleted: false,
+      date: getTodayStr(),
     }
     saveGoals([...goals, goal])
     setNewGoal("")
@@ -77,7 +88,6 @@ export function DailyQuest() {
       <CardContent className="space-y-4">
         <Progress value={progressPercentage} className="h-2" />
 
-        {/* 새 퀘스트 입력 */}
         {showInput && (
           <div className="flex gap-2 p-3 border rounded-lg bg-muted/50">
             <input
@@ -102,7 +112,6 @@ export function DailyQuest() {
           )}
           {goals.map((goal) => (
             <div key={goal.id} className="flex items-center gap-2 p-3 rounded-lg hover:bg-muted/50 transition-colors group">
-              {/* 체크 영역 */}
               <div
                 className="flex items-center gap-3 flex-1 cursor-pointer"
                 onClick={() => toggleGoal(goal.id)}
@@ -116,7 +125,6 @@ export function DailyQuest() {
                   {goal.content}
                 </span>
               </div>
-              {/* 삭제 버튼 */}
               <button
                 onClick={() => deleteGoal(goal.id)}
                 className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-red-500 transition-all p-1"
