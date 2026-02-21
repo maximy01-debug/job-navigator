@@ -1,4 +1,5 @@
 import { Student, students as defaultStudents } from './data'
+import { studentPhotosData } from './photos'
 
 const STUDENTS_DB_KEY = 'students_database'
 const STUDENT_PHOTOS_KEY = 'student_photos'
@@ -82,24 +83,36 @@ export function saveStudentPhoto(studentNumber: number, photoBase64: string): vo
   localStorage.setItem(STUDENT_PHOTOS_KEY, JSON.stringify(photos))
 }
 
-// 모든 학생 사진 가져오기
+// 모든 학생 사진 가져오기 (localStorage 우선, 없으면 번들 사진 사용)
 export function getStudentPhotos(): Record<number, string> {
-  if (typeof window === 'undefined') return {}
+  if (typeof window === 'undefined') return studentPhotosData
 
   const stored = localStorage.getItem(STUDENT_PHOTOS_KEY)
-  if (!stored) return {}
+  if (!stored) return studentPhotosData
 
   try {
-    return JSON.parse(stored) as Record<number, string>
+    // localStorage 데이터와 번들 데이터 병합 (localStorage 우선)
+    const localPhotos = JSON.parse(stored) as Record<number, string>
+    return { ...studentPhotosData, ...localPhotos }
   } catch {
-    return {}
+    return studentPhotosData
   }
 }
 
 // 특정 학생 사진 가져오기
 export function getStudentPhoto(studentNumber: number): string | null {
-  const photos = getStudentPhotos()
-  return photos[studentNumber] || null
+  if (typeof window !== 'undefined') {
+    // localStorage에 있으면 우선 사용
+    const stored = localStorage.getItem(STUDENT_PHOTOS_KEY)
+    if (stored) {
+      try {
+        const localPhotos = JSON.parse(stored) as Record<number, string>
+        if (localPhotos[studentNumber]) return localPhotos[studentNumber]
+      } catch {}
+    }
+  }
+  // 번들된 사진 데이터 사용
+  return studentPhotosData[studentNumber] || null
 }
 
 // CSV에서 학생 데이터 일괄 업로드
