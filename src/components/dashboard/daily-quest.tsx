@@ -1,11 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { CheckCircle2, Circle, Plus, ExternalLink } from "lucide-react"
+import { CheckCircle2, Circle, Plus, ExternalLink, Trash2 } from "lucide-react"
 
 interface DailyGoal {
   id: string
@@ -13,121 +13,127 @@ interface DailyGoal {
   isCompleted: boolean
 }
 
-const mockGoals: DailyGoal[] = [
-  { id: '1', content: 'JavaScript 배열 메서드 복습하기', isCompleted: true },
-  { id: '2', content: 'React 컴포넌트 3개 만들기', isCompleted: true },
-  { id: '3', content: '알고리즘 문제 2개 풀기', isCompleted: false }
+const STORAGE_KEY = 'dashboard_quests'
+
+const defaultGoals: DailyGoal[] = [
+  { id: '1', content: 'JavaScript 배열 메서드 복습하기', isCompleted: false },
+  { id: '2', content: 'React 컴포넌트 3개 만들기', isCompleted: false },
+  { id: '3', content: '알고리즘 문제 2개 풀기', isCompleted: false },
 ]
 
 export function DailyQuest() {
-  const [goals, setGoals] = useState<DailyGoal[]>(mockGoals)
+  const [goals, setGoals] = useState<DailyGoal[]>(defaultGoals)
   const [showInput, setShowInput] = useState(false)
   const [newGoal, setNewGoal] = useState("")
 
-  const completedCount = goals.filter(g => g.isCompleted).length
-  const progressPercentage = goals.length > 0 ? (completedCount / goals.length) * 100 : 0
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (stored) {
+      try { setGoals(JSON.parse(stored)) } catch {}
+    }
+  }, [])
+
+  const saveGoals = (updated: DailyGoal[]) => {
+    setGoals(updated)
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
+  }
 
   const toggleGoal = (id: string) => {
-    setGoals(goals.map(goal =>
-      goal.id === id ? { ...goal, isCompleted: !goal.isCompleted } : goal
-    ))
+    saveGoals(goals.map(g => g.id === id ? { ...g, isCompleted: !g.isCompleted } : g))
+  }
+
+  const deleteGoal = (id: string) => {
+    saveGoals(goals.filter(g => g.id !== id))
   }
 
   const handleAddGoal = () => {
-    if (newGoal.trim()) {
-      const goal: DailyGoal = {
-        id: Date.now().toString(),
-        content: newGoal,
-        isCompleted: false
-      }
-      setGoals([...goals, goal])
-      setNewGoal("")
-      setShowInput(false)
+    if (!newGoal.trim()) return
+    const goal: DailyGoal = {
+      id: Date.now().toString(),
+      content: newGoal.trim(),
+      isCompleted: false,
     }
+    saveGoals([...goals, goal])
+    setNewGoal("")
+    setShowInput(false)
   }
+
+  const completedCount = goals.filter(g => g.isCompleted).length
+  const progressPercentage = goals.length > 0 ? (completedCount / goals.length) * 100 : 0
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>오늘의 퀘스트 🎯</span>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setShowInput(!showInput)}
-          >
+          <Button size="sm" variant="outline" onClick={() => setShowInput(!showInput)}>
             <Plus className="h-4 w-4 mr-1" />
             추가
           </Button>
         </CardTitle>
-        <CardDescription>
-          {completedCount}/{goals.length} 완료
-        </CardDescription>
+        <CardDescription>{completedCount}/{goals.length} 완료</CardDescription>
       </CardHeader>
+
       <CardContent className="space-y-4">
         <Progress value={progressPercentage} className="h-2" />
 
-        {/* 새 목표 추가 입력창 */}
+        {/* 새 퀘스트 입력 */}
         {showInput && (
           <div className="flex gap-2 p-3 border rounded-lg bg-muted/50">
             <input
               type="text"
               value={newGoal}
               onChange={(e) => setNewGoal(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleAddGoal()}
+              onKeyDown={(e) => e.key === 'Enter' && handleAddGoal()}
               placeholder="새 목표를 입력하세요..."
               className="flex-1 px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
               autoFocus
             />
-            <Button size="sm" onClick={handleAddGoal}>
-              추가
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => {
-                setShowInput(false)
-                setNewGoal("")
-              }}
-            >
-              취소
-            </Button>
+            <Button size="sm" onClick={handleAddGoal}>추가</Button>
+            <Button size="sm" variant="outline" onClick={() => { setShowInput(false); setNewGoal("") }}>취소</Button>
           </div>
         )}
 
-        <div className="space-y-3">
+        <div className="space-y-2">
+          {goals.length === 0 && (
+            <p className="text-sm text-muted-foreground text-center py-6">
+              + 추가 버튼으로 퀘스트를 입력해보세요!
+            </p>
+          )}
           {goals.map((goal) => (
-            <div
-              key={goal.id}
-              className="flex items-center space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
-              onClick={() => toggleGoal(goal.id)}
-            >
-              {goal.isCompleted ? (
-                <CheckCircle2 className="h-5 w-5 text-secondary flex-shrink-0" />
-              ) : (
-                <Circle className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-              )}
-              <span
-                className={`text-sm ${
-                  goal.isCompleted
-                    ? 'line-through text-muted-foreground'
-                    : 'text-foreground'
-                }`}
+            <div key={goal.id} className="flex items-center gap-2 p-3 rounded-lg hover:bg-muted/50 transition-colors group">
+              {/* 체크 영역 */}
+              <div
+                className="flex items-center gap-3 flex-1 cursor-pointer"
+                onClick={() => toggleGoal(goal.id)}
               >
-                {goal.content}
-              </span>
+                {goal.isCompleted ? (
+                  <CheckCircle2 className="h-5 w-5 text-secondary flex-shrink-0" />
+                ) : (
+                  <Circle className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                )}
+                <span className={`text-sm ${goal.isCompleted ? 'line-through text-muted-foreground' : ''}`}>
+                  {goal.content}
+                </span>
+              </div>
+              {/* 삭제 버튼 */}
+              <button
+                onClick={() => deleteGoal(goal.id)}
+                className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-red-500 transition-all p-1"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
             </div>
           ))}
         </div>
 
         {progressPercentage === 100 && goals.length > 0 && (
-          <div className="mt-4 p-4 bg-secondary/10 rounded-lg text-center">
-            <p className="text-sm font-medium text-secondary">
-              🎉 오늘의 모든 목표를 달성했어요!
-            </p>
+          <div className="p-4 bg-secondary/10 rounded-lg text-center">
+            <p className="text-sm font-medium text-secondary">🎉 오늘의 모든 목표를 달성했어요!</p>
           </div>
         )}
       </CardContent>
+
       <CardFooter className="border-t pt-4">
         <Link href="/roadmap" className="w-full">
           <Button variant="outline" className="w-full">
