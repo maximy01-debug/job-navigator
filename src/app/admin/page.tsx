@@ -6,7 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { getCurrentAdmin, signOutAdmin } from "@/lib/supabase/auth"
 import { getAllStudents, getStudentPhotos, saveStudentPhoto, uploadStudentsFromCSV } from "@/lib/students/storage"
-import { Shield, Users, Upload, Image as ImageIcon, LogOut, Download } from "lucide-react"
+import Link from "next/link"
+import { Shield, Users, Upload, Image as ImageIcon, LogOut, Download, Settings } from "lucide-react"
 import type { Student } from "@/lib/students/data"
 
 export default function AdminDashboardPage() {
@@ -273,6 +274,12 @@ export default function AdminDashboardPage() {
                       className="hidden"
                       onChange={(e) => handlePhotoUpload(student.student_number, e)}
                     />
+                    <Link href={`/admin/student/${student.student_number}`}>
+                      <Button size="sm" variant="default">
+                        <Settings className="h-4 w-4 mr-2" />
+                        상세관리
+                      </Button>
+                    </Link>
                   </div>
                 </div>
               ))}
