@@ -80,18 +80,25 @@ export function Header() {
             {loading ? (
               <div className="h-9 w-20 bg-muted animate-pulse rounded-md" />
             ) : student ? (
-              <div className="flex items-center space-x-3">
-                <div className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-muted">
-                  <User className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-medium">
-                    {student.name} ({student.department} {student.class_name})
-                  </span>
-                </div>
+              <div className="flex items-center space-x-2">
+                <Link href="/mypage">
+                  <div className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-muted hover:bg-muted/70 transition-colors cursor-pointer">
+                    <User className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">
+                      {student.name} ({student.class_name})
+                    </span>
+                  </div>
+                </Link>
+                <Link href="/mypage">
+                  <Button variant="outline" size="sm">
+                    마이페이지
+                  </Button>
+                </Link>
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={handleSignOut}
-                  className="flex items-center space-x-2"
+                  className="flex items-center space-x-1 text-muted-foreground"
                 >
                   <LogOut className="h-4 w-4" />
                   <span>로그아웃</span>
