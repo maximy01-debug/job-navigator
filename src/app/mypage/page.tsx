@@ -14,7 +14,6 @@ import {
 import { getCurrentStudent } from "@/lib/supabase/auth"
 import { getStudentPhoto } from "@/lib/students/storage"
 import { DAILY_QUEST_KEY, type DailyGoal } from "@/components/dashboard/daily-quest"
-import { getProjects, getProjectFeedback, type Project, type ProjectFeedback } from "@/lib/students/extended-storage"
 import { format } from "date-fns"
 import type { Student } from "@/lib/students/data"
 
@@ -54,8 +53,11 @@ const getActivityIcon = (type: Activity['type']) => {
   return <FileText className="h-4 w-4 text-blue-500" />
 }
 
-interface ProjectWithFeedback extends Project {
-  feedback: ProjectFeedback | null
+interface FeedbackItem {
+  projectId: string
+  projectTitle: string
+  feedback: string
+  generatedAt: string
 }
 
 export default function MyPage() {
@@ -65,7 +67,7 @@ export default function MyPage() {
   const [quests, setQuests] = useState<DailyGoal[]>([])
   const [roadmap, setRoadmap] = useState<GradeProgress[]>([])
   const [activities, setActivities] = useState<Activity[]>([])
-  const [projectsWithFeedback, setProjectsWithFeedback] = useState<ProjectWithFeedback[]>([])
+  const [feedbackItems, setFeedbackItems] = useState<FeedbackItem[]>([])
 
   useEffect(() => {
     const s = getCurrentStudent()
@@ -99,13 +101,32 @@ export default function MyPage() {
       if (a) setActivities(JSON.parse(a).slice(0, 5))
     } catch {}
 
-    // AI 피드백이 있는 프로젝트
-    const ps = getProjects(s.student_number)
-    const pwf: ProjectWithFeedback[] = ps.map(p => ({
-      ...p,
-      feedback: getProjectFeedback(s.student_number, p.id),
-    })).filter(p => p.feedback !== null)
-    setProjectsWithFeedback(pwf)
+    // AI 피드백 로딩 — localStorage에서 직접 읽어 키 타입 불일치를 방지
+    try {
+      const fbRaw = localStorage.getItem('admin_student_project_feedback')
+      const prRaw = localStorage.getItem('admin_student_projects')
+      if (fbRaw) {
+        const fbAll = JSON.parse(fbRaw)
+        // 숫자·문자열 키 둘 다 시도
+        const fbList: { projectId: string; feedback: string; generatedAt: string }[] =
+          fbAll[s.student_number] ?? fbAll[String(s.student_number)] ?? []
+
+        if (fbList.length > 0) {
+          // 프로젝트 제목 보완 (없어도 피드백은 표시)
+          const prAll = prRaw ? JSON.parse(prRaw) : {}
+          const prList: { id: string; title: string }[] =
+            prAll[s.student_number] ?? prAll[String(s.student_number)] ?? []
+
+          const items: FeedbackItem[] = fbList.map(fb => ({
+            projectId: fb.projectId,
+            projectTitle: prList.find(p => p.id === fb.projectId)?.title ?? '프로젝트',
+            feedback: fb.feedback,
+            generatedAt: fb.generatedAt,
+          }))
+          setFeedbackItems(items)
+        }
+      }
+    } catch {}
   }, [router])
 
   if (!student) return null
@@ -299,7 +320,7 @@ export default function MyPage() {
         </Card>
 
         {/* ── AI 피드백 ── */}
-        {projectsWithFeedback.length > 0 && (
+        {feedbackItems.length > 0 && (
           <Card className="mb-6">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -309,17 +330,17 @@ export default function MyPage() {
               <CardDescription>선생님이 요청한 AI 피드백 결과입니다</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {projectsWithFeedback.map((p) => (
-                <div key={p.id} className="border rounded-lg overflow-hidden">
+              {feedbackItems.map((item) => (
+                <div key={item.projectId} className="border rounded-lg overflow-hidden">
                   <div className="flex items-center gap-2 px-4 py-2 bg-purple-50 border-b border-purple-100">
                     <Sparkles className="h-4 w-4 text-purple-500 flex-shrink-0" />
-                    <span className="font-medium text-sm">{p.title}</span>
+                    <span className="font-medium text-sm">{item.projectTitle}</span>
                     <span className="text-xs text-muted-foreground ml-auto">
-                      {p.feedback && format(new Date(p.feedback.generatedAt), 'MM월 dd일')} 생성
+                      {format(new Date(item.generatedAt), 'MM월 dd일')} 생성
                     </span>
                   </div>
                   <div className="px-4 py-3 text-sm whitespace-pre-wrap leading-relaxed text-foreground">
-                    {p.feedback?.feedback}
+                    {item.feedback}
                   </div>
                 </div>
               ))}
