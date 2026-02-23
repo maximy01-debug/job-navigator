@@ -135,3 +135,35 @@ export function deleteGradeRecord(studentNumber: number, id: string): void {
   db[studentNumber] = (db[studentNumber] ?? []).filter(r => r.id !== id)
   save(GRADES_KEY, db)
 }
+
+// ── AI 프로젝트 피드백 ────────────────────────────────
+
+export interface ProjectFeedback {
+  projectId: string
+  feedback: string
+  generatedAt: string   // ISO
+}
+
+const FEEDBACK_KEY = 'admin_student_project_feedback'
+
+export function getProjectFeedbacks(studentNumber: number): ProjectFeedback[] {
+  return load<ProjectFeedback>(FEEDBACK_KEY)[studentNumber] ?? []
+}
+
+export function getProjectFeedback(studentNumber: number, projectId: string): ProjectFeedback | null {
+  return getProjectFeedbacks(studentNumber).find(f => f.projectId === projectId) ?? null
+}
+
+export function saveProjectFeedback(studentNumber: number, projectId: string, feedback: string): void {
+  const db = load<ProjectFeedback>(FEEDBACK_KEY)
+  const list = (db[studentNumber] ?? []).filter(f => f.projectId !== projectId)
+  list.push({ projectId, feedback, generatedAt: new Date().toISOString() })
+  db[studentNumber] = list
+  save(FEEDBACK_KEY, db)
+}
+
+export function deleteProjectFeedback(studentNumber: number, projectId: string): void {
+  const db = load<ProjectFeedback>(FEEDBACK_KEY)
+  db[studentNumber] = (db[studentNumber] ?? []).filter(f => f.projectId !== projectId)
+  save(FEEDBACK_KEY, db)
+}

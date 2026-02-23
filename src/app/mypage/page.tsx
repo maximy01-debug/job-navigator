@@ -9,11 +9,12 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import {
   User, CheckCircle2, Circle, Trophy, FileText,
-  TrendingUp, Target, Calendar, BookOpen, Users, Shield
+  TrendingUp, Target, Calendar, BookOpen, Users, Shield, Sparkles
 } from "lucide-react"
 import { getCurrentStudent } from "@/lib/supabase/auth"
 import { getStudentPhoto } from "@/lib/students/storage"
 import { DAILY_QUEST_KEY, type DailyGoal } from "@/components/dashboard/daily-quest"
+import { getProjects, getProjectFeedback, type Project, type ProjectFeedback } from "@/lib/students/extended-storage"
 import { format } from "date-fns"
 import type { Student } from "@/lib/students/data"
 
@@ -53,6 +54,10 @@ const getActivityIcon = (type: Activity['type']) => {
   return <FileText className="h-4 w-4 text-blue-500" />
 }
 
+interface ProjectWithFeedback extends Project {
+  feedback: ProjectFeedback | null
+}
+
 export default function MyPage() {
   const router = useRouter()
   const [student, setStudent] = useState<Student | null>(null)
@@ -60,6 +65,7 @@ export default function MyPage() {
   const [quests, setQuests] = useState<DailyGoal[]>([])
   const [roadmap, setRoadmap] = useState<GradeProgress[]>([])
   const [activities, setActivities] = useState<Activity[]>([])
+  const [projectsWithFeedback, setProjectsWithFeedback] = useState<ProjectWithFeedback[]>([])
 
   useEffect(() => {
     const s = getCurrentStudent()
@@ -92,6 +98,14 @@ export default function MyPage() {
       const a = localStorage.getItem(ACTIVITY_KEY)
       if (a) setActivities(JSON.parse(a).slice(0, 5))
     } catch {}
+
+    // AI 피드백이 있는 프로젝트
+    const ps = getProjects(s.student_number)
+    const pwf: ProjectWithFeedback[] = ps.map(p => ({
+      ...p,
+      feedback: getProjectFeedback(s.student_number, p.id),
+    })).filter(p => p.feedback !== null)
+    setProjectsWithFeedback(pwf)
   }, [router])
 
   if (!student) return null
@@ -283,6 +297,35 @@ export default function MyPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* ── AI 피드백 ── */}
+        {projectsWithFeedback.length > 0 && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-purple-500" />
+                AI 프로젝트 피드백
+              </CardTitle>
+              <CardDescription>선생님이 요청한 AI 피드백 결과입니다</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {projectsWithFeedback.map((p) => (
+                <div key={p.id} className="border rounded-lg overflow-hidden">
+                  <div className="flex items-center gap-2 px-4 py-2 bg-purple-50 border-b border-purple-100">
+                    <Sparkles className="h-4 w-4 text-purple-500 flex-shrink-0" />
+                    <span className="font-medium text-sm">{p.title}</span>
+                    <span className="text-xs text-muted-foreground ml-auto">
+                      {p.feedback && format(new Date(p.feedback.generatedAt), 'MM월 dd일')} 생성
+                    </span>
+                  </div>
+                  <div className="px-4 py-3 text-sm whitespace-pre-wrap leading-relaxed text-foreground">
+                    {p.feedback?.feedback}
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
         {/* ── 바로가기 ── */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

@@ -9,7 +9,7 @@ import { Progress } from "@/components/ui/progress"
 import {
   Shield, ArrowLeft, User, BookOpen, FolderKanban,
   MessageSquare, BarChart2, Plus, Trash2, Edit2, Check, X,
-  Github, ExternalLink, Save
+  Github, ExternalLink, Save, Sparkles, Loader2, RefreshCw
 } from "lucide-react"
 import { getCurrentAdmin } from "@/lib/supabase/auth"
 import { getAllStudents, getStudentPhoto, saveStudentPhoto } from "@/lib/students/storage"
@@ -17,7 +17,8 @@ import {
   getProjects, addProject, updateProject, deleteProject,
   getCounselingRecords, addCounselingRecord, updateCounselingRecord, deleteCounselingRecord,
   getGradeRecords, addGradeRecord, updateGradeRecord, deleteGradeRecord,
-  type Project, type CounselingRecord, type GradeRecord
+  getProjectFeedback, saveProjectFeedback, deleteProjectFeedback,
+  type Project, type CounselingRecord, type GradeRecord, type ProjectFeedback
 } from "@/lib/students/extended-storage"
 import type { Student } from "@/lib/students/data"
 
@@ -88,6 +89,10 @@ export default function StudentDetailPage() {
   const [editCounselingData, setEditCounselingData] = useState<CounselingRecord | null>(null)
   const [editGradeData, setEditGradeData] = useState<GradeRecord | null>(null)
 
+  // AI 피드백 상태
+  const [feedbacks, setFeedbacks] = useState<Record<string, ProjectFeedback>>({})
+  const [generatingFeedback, setGeneratingFeedback] = useState<string | null>(null)
+
   useEffect(() => {
     if (!getCurrentAdmin()) { router.push('/admin/login'); return }
     const s = getAllStudents().find(x => x.student_number === studentId)
@@ -98,9 +103,46 @@ export default function StudentDetailPage() {
   }, [studentId, router])
 
   const reload = () => {
-    setProjects(getProjects(studentId))
+    const ps = getProjects(studentId)
+    setProjects(ps)
     setCounseling(getCounselingRecords(studentId))
     setGrades(getGradeRecords(studentId))
+    // 피드백 맵 로드
+    const fbMap: Record<string, ProjectFeedback> = {}
+    ps.forEach(p => {
+      const fb = getProjectFeedback(studentId, p.id)
+      if (fb) fbMap[p.id] = fb
+    })
+    setFeedbacks(fbMap)
+  }
+
+  const handleGenerateFeedback = async (p: Project) => {
+    if (!student) return
+    setGeneratingFeedback(p.id)
+    try {
+      const res = await fetch('/api/gemini-feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectTitle: p.title,
+          description: p.description,
+          techStack: p.techStack,
+          status: STATUS_LABELS[p.status],
+          studentName: student.name,
+        }),
+      })
+      const data = await res.json()
+      if (data.error) {
+        alert(`피드백 생성 실패: ${data.error}`)
+      } else {
+        saveProjectFeedback(studentId, p.id, data.feedback)
+        reload()
+      }
+    } catch (err) {
+      alert('피드백 생성 중 오류가 발생했습니다.')
+    } finally {
+      setGeneratingFeedback(null)
+    }
   }
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -428,44 +470,91 @@ export default function StudentDetailPage() {
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-2 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-medium">{p.title}</span>
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[p.status]}`}>
-                            {STATUS_LABELS[p.status]}
-                          </span>
-                        </div>
-                        {p.description && <p className="text-sm text-muted-foreground">{p.description}</p>}
-                        {p.techStack && (
-                          <div className="flex flex-wrap gap-1">
-                            {p.techStack.split(',').map(t => (
-                              <span key={t} className="text-xs bg-muted px-2 py-0.5 rounded">{t.trim()}</span>
-                            ))}
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-2 flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-medium">{p.title}</span>
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[p.status]}`}>
+                              {STATUS_LABELS[p.status]}
+                            </span>
                           </div>
-                        )}
-                        <div className="flex gap-2">
-                          {p.githubUrl && (
-                            <a href={p.githubUrl} target="_blank" rel="noopener noreferrer"
-                              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
-                              <Github className="h-3 w-3" /> GitHub
-                            </a>
+                          {p.description && <p className="text-sm text-muted-foreground">{p.description}</p>}
+                          {p.techStack && (
+                            <div className="flex flex-wrap gap-1">
+                              {p.techStack.split(',').map(t => (
+                                <span key={t} className="text-xs bg-muted px-2 py-0.5 rounded">{t.trim()}</span>
+                              ))}
+                            </div>
                           )}
-                          {p.demoUrl && (
-                            <a href={p.demoUrl} target="_blank" rel="noopener noreferrer"
-                              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
-                              <ExternalLink className="h-3 w-3" /> Demo
-                            </a>
-                          )}
+                          <div className="flex gap-2 flex-wrap">
+                            {p.githubUrl && (
+                              <a href={p.githubUrl} target="_blank" rel="noopener noreferrer"
+                                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+                                <Github className="h-3 w-3" /> GitHub
+                              </a>
+                            )}
+                            {p.demoUrl && (
+                              <a href={p.demoUrl} target="_blank" rel="noopener noreferrer"
+                                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+                                <ExternalLink className="h-3 w-3" /> Demo
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
+                          <button onClick={() => { setEditingProject(p.id); setEditProjectData({...p}) }} className="p-1.5 rounded hover:bg-muted">
+                            <Edit2 className="h-4 w-4 text-muted-foreground" />
+                          </button>
+                          <button onClick={() => { deleteProject(studentId, p.id); deleteProjectFeedback(studentId, p.id); reload() }} className="p-1.5 rounded hover:bg-muted">
+                            <Trash2 className="h-4 w-4 text-red-400" />
+                          </button>
                         </div>
                       </div>
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
-                        <button onClick={() => { setEditingProject(p.id); setEditProjectData({...p}) }} className="p-1.5 rounded hover:bg-muted">
-                          <Edit2 className="h-4 w-4 text-muted-foreground" />
-                        </button>
-                        <button onClick={() => { deleteProject(studentId, p.id); reload() }} className="p-1.5 rounded hover:bg-muted">
-                          <Trash2 className="h-4 w-4 text-red-400" />
-                        </button>
+
+                      {/* AI 피드백 섹션 */}
+                      <div className="border-t pt-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Sparkles className="h-4 w-4 text-purple-500" />
+                          <span className="text-xs font-semibold text-purple-700">AI 피드백</span>
+                          {feedbacks[p.id] && (
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(feedbacks[p.id].generatedAt).toLocaleDateString('ko-KR')} 생성
+                            </span>
+                          )}
+                        </div>
+
+                        {feedbacks[p.id] ? (
+                          <div className="space-y-2">
+                            <div className="text-sm bg-purple-50 border border-purple-100 rounded-lg p-3 whitespace-pre-wrap leading-relaxed">
+                              {feedbacks[p.id].feedback}
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleGenerateFeedback(p)}
+                              disabled={generatingFeedback === p.id}
+                              className="text-xs h-7"
+                            >
+                              {generatingFeedback === p.id
+                                ? <><Loader2 className="h-3 w-3 mr-1 animate-spin" />생성 중...</>
+                                : <><RefreshCw className="h-3 w-3 mr-1" />재생성</>
+                              }
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button
+                            size="sm"
+                            onClick={() => handleGenerateFeedback(p)}
+                            disabled={generatingFeedback === p.id}
+                            className="bg-purple-600 hover:bg-purple-700 text-white text-xs h-8"
+                          >
+                            {generatingFeedback === p.id
+                              ? <><Loader2 className="h-3 w-3 mr-1.5 animate-spin" />AI 피드백 생성 중...</>
+                              : <><Sparkles className="h-3 w-3 mr-1.5" />AI 피드백 생성</>
+                            }
+                          </Button>
+                        )}
                       </div>
                     </div>
                   )}
