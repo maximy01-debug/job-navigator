@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { getCurrentAdmin, signOutAdmin } from "@/lib/supabase/auth"
 import { getAllStudents, getStudentPhotos, saveStudentPhoto, uploadStudentsFromCSV } from "@/lib/students/storage"
 import Link from "next/link"
-import { Shield, Users, Upload, Image as ImageIcon, LogOut, Download, Settings } from "lucide-react"
+import { Shield, Users, Upload, Image as ImageIcon, LogOut, Download, Settings, MessageCircle, BookOpen } from "lucide-react"
 import type { Student } from "@/lib/students/data"
 
 export default function AdminDashboardPage() {
@@ -187,6 +187,39 @@ export default function AdminDashboardPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* 컨설팅 관리 섹션 */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <MessageCircle className="h-5 w-5" />
+              <span>취업 컨설팅 관리</span>
+            </CardTitle>
+            <CardDescription>학생 컨설팅 요청을 관리하고, AI 프롬프트 라이브러리를 활용하여 피드백을 제공합니다</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2">
+              <Link href="/admin/consulting">
+                <div className="p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
+                  <div className="flex items-center space-x-3 mb-2">
+                    <MessageCircle className="h-5 w-5 text-blue-500" />
+                    <span className="font-medium">컨설팅 요청 관리</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">학생들의 컨설팅 요청을 확인하고 상태를 관리합니다</p>
+                </div>
+              </Link>
+              <Link href="/admin/consulting/prompts">
+                <div className="p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
+                  <div className="flex items-center space-x-3 mb-2">
+                    <BookOpen className="h-5 w-5 text-purple-500" />
+                    <span className="font-medium">AI 프롬프트 라이브러리</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">전공별/직무별 AI 프롬프트 템플릿을 관리합니다</p>
+                </div>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* CSV Upload Section */}
         <Card className="mb-8">

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Target, LayoutDashboard, FolderKanban, Calendar, LogOut, User } from "lucide-react"
+import { Target, LayoutDashboard, FolderKanban, Calendar, LogOut, User, MessageCircle } from "lucide-react"
 import { getCurrentStudent, signOutStudent } from "@/lib/supabase/auth"
 import type { Student } from "@/lib/students/data"
 
@@ -13,6 +13,7 @@ const navigation = [
   { name: '로드맵', href: '/roadmap', icon: Target },
   { name: '프로젝트', href: '/projects', icon: FolderKanban },
   { name: '일일 목표', href: '/daily-goals', icon: Calendar },
+  { name: '컨설팅', href: '/consulting', icon: MessageCircle },
 ]
 
 export function Header() {
