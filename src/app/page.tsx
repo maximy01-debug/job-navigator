@@ -87,69 +87,83 @@ export default function DashboardPage() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
           <StatsCard
             title="전체 로드맵 달성률"
-            value="68%"
-            description="12개 중 8개 완료"
+            value={student ? "68%" : "—"}
+            description={student ? "12개 중 8개 완료" : "로그인 후 확인"}
             icon={Target}
-            trend={{ value: 12, isPositive: true }}
+            trend={student ? { value: 12, isPositive: true } : undefined}
           />
           <StatsCard
             title="이번 달 목표 달성"
-            value="24일"
-            description="목표 달성 연속 기록"
+            value={student ? "24일" : "—"}
+            description={student ? "목표 달성 연속 기록" : "로그인 후 확인"}
             icon={Calendar}
-            trend={{ value: 8, isPositive: true }}
+            trend={student ? { value: 8, isPositive: true } : undefined}
           />
           <StatsCard
             title="포트폴리오 프로젝트"
-            value="7개"
-            description="최근 1개 추가됨"
+            value={student ? "7개" : "—"}
+            description={student ? "최근 1개 추가됨" : "로그인 후 확인"}
             icon={Briefcase}
           />
           <StatsCard
             title="취득 자격증"
-            value="3개"
-            description="정보처리기능사 외 2개"
+            value={student ? "3개" : "—"}
+            description={student ? "정보처리기능사 외 2개" : "로그인 후 확인"}
             icon={Trophy}
           />
         </div>
 
-        {/* Main Content Grid */}
-        <div className="grid gap-6 lg:grid-cols-2 mb-8">
-          <DailyQuest />
-          <ActivityFeed />
-        </div>
-
-        {/* Roadmap Progress Overview */}
-        <RoadmapProgress />
-
-        {/* D-Day Counter */}
-        <Card className="bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold mb-1">다가오는 목표</h3>
-                <p className="text-sm text-muted-foreground">
-                  팀 프로젝트 참여 마감
-                </p>
-              </div>
-              <div className="text-center">
-                {(() => {
-                  const now = new Date()
-                  const target = new Date(now.getFullYear(), now.getMonth() + 2, 15)
-                  const diff = Math.ceil((target.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-                  return (
-                    <>
-                      <div className="text-4xl font-bold text-primary">D-{diff}</div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {target.getFullYear()}년 {target.getMonth() + 1}월 {target.getDate()}일
-                      </p>
-                    </>
-                  )
-                })()}
-              </div>
+        {student ? (
+          <>
+            {/* Main Content Grid */}
+            <div className="grid gap-6 lg:grid-cols-2 mb-8">
+              <DailyQuest />
+              <ActivityFeed />
             </div>
-          </CardContent>
-        </Card>
+
+            {/* Roadmap Progress Overview */}
+            <RoadmapProgress />
+
+            {/* D-Day Counter */}
+            <Card className="bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-1">다가오는 목표</h3>
+                    <p className="text-sm text-muted-foreground">
+                      팀 프로젝트 참여 마감
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    {(() => {
+                      const now = new Date()
+                      const target = new Date(now.getFullYear(), now.getMonth() + 2, 15)
+                      const diff = Math.ceil((target.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+                      return (
+                        <>
+                          <div className="text-4xl font-bold text-primary">D-{diff}</div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {target.getFullYear()}년 {target.getMonth() + 1}월 {target.getDate()}일
+                          </p>
+                        </>
+                      )
+                    })()}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        ) : !loading && (
+          <Card className="border-dashed">
+            <CardContent className="pt-6 pb-6">
+              <div className="text-center text-muted-foreground space-y-2">
+                <Target className="h-12 w-12 mx-auto opacity-30" />
+                <p className="text-lg font-medium">로그인하면 나의 로드맵, 일일 목표, 활동 기록을 확인할 수 있어요</p>
+                <p className="text-sm">회원가입 후 나만의 취업 로드맵을 시작해보세요!</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </main>
     </div>
   )

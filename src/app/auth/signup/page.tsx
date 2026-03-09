@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Target, CheckCircle2, Camera, User } from "lucide-react"
 import { addStudent, getAllStudents, saveStudentPhoto } from "@/lib/students/storage"
+import { signInAsStudent } from "@/lib/supabase/auth"
 import type { Student } from "@/lib/students/data"
 
 const DEPARTMENTS = [
@@ -126,9 +127,15 @@ export default function SignUpPage() {
       saveStudentPhoto(studentNum, photoBase64)
     }
 
+    // 자동 로그인 처리
+    signInAsStudent(form.name, form.student_number)
+
     setSuccess(true)
     setLoading(false)
-    setTimeout(() => router.push("/auth/login"), 2500)
+    setTimeout(() => {
+      router.push("/")
+      router.refresh()
+    }, 2500)
   }
 
   if (success) {
@@ -145,7 +152,7 @@ export default function SignUpPage() {
               <h2 className="text-2xl font-bold">회원가입 완료!</h2>
               <p className="text-muted-foreground">
                 학생 데이터베이스에 추가되었습니다.<br />
-                잠시 후 로그인 페이지로 이동합니다...
+                자동 로그인 후 메인 페이지로 이동합니다...
               </p>
             </div>
           </CardContent>

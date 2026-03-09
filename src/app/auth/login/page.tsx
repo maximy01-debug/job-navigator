@@ -88,7 +88,7 @@ export default function LoginPage() {
                 required
               />
               <p className="text-xs text-muted-foreground">
-                학생번호는 1부터 25까지 입니다
+                회원가입 시 등록한 학생번호를 입력하세요
               </p>
             </div>
 
@@ -101,13 +101,11 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-            <h4 className="text-sm font-semibold mb-2">💡 테스트 계정</h4>
-            <div className="text-xs text-muted-foreground space-y-1">
-              <p>• 이름: 김민수 / 학생번호: 1</p>
-              <p>• 이름: 이서연 / 학생번호: 2</p>
-              <p>• 이름: 박지훈 / 학생번호: 3</p>
-            </div>
+          <div className="mt-6 text-center text-sm">
+            <span className="text-muted-foreground">계정이 없으신가요? </span>
+            <Link href="/auth/signup" className="text-primary hover:underline font-medium">
+              회원가입
+            </Link>
           </div>
         </CardContent>
       </Card>
