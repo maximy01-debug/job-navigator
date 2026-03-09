@@ -6,7 +6,7 @@ import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { signInAsStudent } from "@/lib/supabase/auth"
-import { Target } from "lucide-react"
+import { Target, ArrowLeft } from "lucide-react"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -34,6 +34,12 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-muted/20 p-4">
       <Card className="w-full max-w-md">
+        <div className="px-6 pt-4">
+          <Link href="/" className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1">
+            <ArrowLeft className="h-4 w-4" />
+            홈으로 돌아가기
+          </Link>
+        </div>
         <CardHeader className="space-y-4">
           <div className="flex justify-center">
             <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
