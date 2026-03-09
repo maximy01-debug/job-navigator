@@ -5,7 +5,9 @@ import { usePathname } from "next/navigation"
 import { Target } from "lucide-react"
 
 // Header가 이미 로고를 표시하는 페이지 목록
-const PAGES_WITH_HEADER = ['/', '/roadmap', '/projects', '/daily-goals', '/consulting', '/mypage']
+const PAGES_WITH_HEADER = ['/', '/roadmap', '/projects', '/daily-goals', '/mypage']
+// /consulting 은 정확히 매칭, 하위 경로(/consulting/request 등)에서는 로고 표시
+const EXACT_MATCH_PAGES = ['/consulting']
 
 export function FloatingLogo() {
   const pathname = usePathname()
@@ -13,7 +15,7 @@ export function FloatingLogo() {
   // Header가 있는 페이지에서는 중복 표시하지 않음
   const hasHeader = PAGES_WITH_HEADER.some(
     p => pathname === p || (p !== '/' && pathname.startsWith(p))
-  )
+  ) || EXACT_MATCH_PAGES.includes(pathname)
   if (hasHeader) return null
 
   return (
