@@ -14,31 +14,11 @@ interface Activity {
   timestamp: string // ISO 문자열로 저장
 }
 
-const STORAGE_KEY = 'dashboard_activities'
+const ACTIVITY_KEY_PREFIX = 'dashboard_activities'
 
-const defaultActivities: Activity[] = [
-  {
-    id: '1',
-    type: 'goal',
-    title: '오늘의 목표 달성',
-    description: 'Python 기초 문법 학습 완료',
-    timestamp: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    type: 'project',
-    title: '프로젝트 업로드',
-    description: '날씨 앱 프로젝트 포트폴리오 추가',
-    timestamp: new Date(Date.now() - 86400000).toISOString(),
-  },
-  {
-    id: '3',
-    type: 'roadmap',
-    title: '로드맵 목표 완료',
-    description: '정보처리기능사 필기 시험 합격',
-    timestamp: new Date(Date.now() - 172800000).toISOString(),
-  },
-]
+export function getActivityKey(studentNumber: number): string {
+  return `${ACTIVITY_KEY_PREFIX}_${studentNumber}`
+}
 
 const TYPE_LABELS: Record<Activity['type'], string> = {
   goal: '목표 달성',
@@ -52,8 +32,12 @@ const TYPE_COLORS: Record<Activity['type'], string> = {
   project: 'bg-blue-100 text-blue-700',
 }
 
-export function ActivityFeed() {
-  const [activities, setActivities] = useState<Activity[]>(defaultActivities)
+interface ActivityFeedProps {
+  studentNumber?: number
+}
+
+export function ActivityFeed({ studentNumber }: ActivityFeedProps) {
+  const [activities, setActivities] = useState<Activity[]>([])
   const [showForm, setShowForm] = useState(false)
   const [newForm, setNewForm] = useState({
     type: 'goal' as Activity['type'],
@@ -62,15 +46,17 @@ export function ActivityFeed() {
   })
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY)
+    if (!studentNumber) return
+    const stored = localStorage.getItem(getActivityKey(studentNumber))
     if (stored) {
       try { setActivities(JSON.parse(stored)) } catch {}
     }
-  }, [])
+  }, [studentNumber])
 
   const saveActivities = (updated: Activity[]) => {
+    if (!studentNumber) return
     setActivities(updated)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
+    localStorage.setItem(getActivityKey(studentNumber), JSON.stringify(updated))
   }
 
   const handleAdd = () => {

@@ -7,77 +7,61 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { CheckCircle2, Circle, Plus, Calendar as CalendarIcon, Trash2 } from "lucide-react"
 import { format } from "date-fns"
-import { DAILY_QUEST_KEY, type DailyGoal } from "@/components/dashboard/daily-quest"
+import { getQuestKey, type DailyGoal } from "@/components/dashboard/daily-quest"
+import { getCurrentStudent } from "@/lib/supabase/auth"
 
 // 히스토리 키 (날짜별 과거 기록)
-const HISTORY_KEY = 'daily_goals_history'
+const getHistoryKey = (studentNumber: number) => `daily_goals_history_${studentNumber}`
 
 const getTodayStr = () => new Date().toISOString().split('T')[0]
 
-// 과거 기록 Mock (히스토리 초기값)
-const getMockHistory = () => {
-  const now = new Date()
-  const fmt = (d: Date) => d.toISOString().split('T')[0]
-  const d1 = fmt(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1))
-  const d2 = fmt(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 2))
-  return [
-    {
-      date: d1,
-      goals: [
-        { id: 'h1', content: 'CSS Grid 레이아웃 학습', isCompleted: true, date: d1 },
-        { id: 'h2', content: '프로젝트 README 작성', isCompleted: true, date: d1 },
-        { id: 'h3', content: 'Git 명령어 정리', isCompleted: true, date: d1 },
-      ]
-    },
-    {
-      date: d2,
-      goals: [
-        { id: 'h4', content: 'TypeScript 기초 문법', isCompleted: true, date: d2 },
-        { id: 'h5', content: 'Next.js 튜토리얼 따라하기', isCompleted: false, date: d2 },
-        { id: 'h6', content: '코드 리뷰 반영', isCompleted: true, date: d2 },
-      ]
-    }
-  ]
-}
-
 export default function DailyGoalsPage() {
   const [todayGoals, setTodayGoals] = useState<DailyGoal[]>([])
-  const [history, setHistory] = useState(getMockHistory())
+  const [history, setHistory] = useState<{ date: string; goals: DailyGoal[] }[]>([])
   const [newGoal, setNewGoal] = useState("")
+  const [studentNumber, setStudentNumber] = useState<number | null>(null)
 
   const today = format(new Date(), 'yyyy년 MM월 dd일')
 
-  // localStorage에서 오늘의 목표 로드 (dashboard_quests 공유)
-  const loadGoals = () => {
-    const stored = localStorage.getItem(DAILY_QUEST_KEY)
+  const loadGoals = (sn: number) => {
+    const stored = localStorage.getItem(getQuestKey(sn))
     if (stored) {
       try {
         const parsed: DailyGoal[] = JSON.parse(stored)
         const todayStr = getTodayStr()
         setTodayGoals(parsed.map(g => ({ ...g, date: g.date || todayStr })))
       } catch {}
+    } else {
+      setTodayGoals([])
     }
 
-    // 히스토리 로드
-    const storedHistory = localStorage.getItem(HISTORY_KEY)
+    const storedHistory = localStorage.getItem(getHistoryKey(sn))
     if (storedHistory) {
       try { setHistory(JSON.parse(storedHistory)) } catch {}
+    } else {
+      setHistory([])
     }
   }
 
   useEffect(() => {
-    loadGoals()
+    const student = getCurrentStudent()
+    if (student) {
+      setStudentNumber(student.student_number)
+      loadGoals(student.student_number)
+    }
 
-    // 대시보드에서 변경 시 실시간 동기화
-    const handleStorage = () => loadGoals()
+    const handleStorage = () => {
+      const s = getCurrentStudent()
+      if (s) loadGoals(s.student_number)
+    }
     window.addEventListener('storage', handleStorage)
     return () => window.removeEventListener('storage', handleStorage)
   }, [])
 
-  // 목표 저장 (dashboard_quests 키에 저장 → 대시보드와 공유)
   const saveGoals = (updated: DailyGoal[]) => {
+    if (!studentNumber) return
     setTodayGoals(updated)
-    localStorage.setItem(DAILY_QUEST_KEY, JSON.stringify(updated))
+    localStorage.setItem(getQuestKey(studentNumber), JSON.stringify(updated))
     window.dispatchEvent(new Event('storage'))
   }
 

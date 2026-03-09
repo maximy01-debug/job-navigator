@@ -16,35 +16,39 @@ export interface DailyGoal {
 
 export const DAILY_QUEST_KEY = 'dashboard_quests'
 
+// 학생별 키 생성
+export function getQuestKey(studentNumber: number): string {
+  return `${DAILY_QUEST_KEY}_${studentNumber}`
+}
+
 const getTodayStr = () => new Date().toISOString().split('T')[0]
 
-const defaultGoals: DailyGoal[] = [
-  { id: '1', content: 'JavaScript 배열 메서드 복습하기', isCompleted: false, date: getTodayStr() },
-  { id: '2', content: 'React 컴포넌트 3개 만들기', isCompleted: false, date: getTodayStr() },
-  { id: '3', content: '알고리즘 문제 2개 풀기', isCompleted: false, date: getTodayStr() },
-]
+interface DailyQuestProps {
+  studentNumber?: number
+}
 
-export function DailyQuest() {
-  const [goals, setGoals] = useState<DailyGoal[]>(defaultGoals)
+export function DailyQuest({ studentNumber }: DailyQuestProps) {
+  const [goals, setGoals] = useState<DailyGoal[]>([])
   const [showInput, setShowInput] = useState(false)
   const [newGoal, setNewGoal] = useState("")
 
   useEffect(() => {
-    const stored = localStorage.getItem(DAILY_QUEST_KEY)
+    if (!studentNumber) return
+    const key = getQuestKey(studentNumber)
+    const stored = localStorage.getItem(key)
     if (stored) {
       try {
         const parsed: DailyGoal[] = JSON.parse(stored)
-        // date 필드 없는 기존 데이터 호환
         const today = getTodayStr()
         setGoals(parsed.map(g => ({ ...g, date: g.date || today })))
       } catch {}
     }
-  }, [])
+  }, [studentNumber])
 
   const saveGoals = (updated: DailyGoal[]) => {
+    if (!studentNumber) return
     setGoals(updated)
-    localStorage.setItem(DAILY_QUEST_KEY, JSON.stringify(updated))
-    // 다른 탭(일일목표 페이지)에도 변경 전파
+    localStorage.setItem(getQuestKey(studentNumber), JSON.stringify(updated))
     window.dispatchEvent(new Event('storage'))
   }
 

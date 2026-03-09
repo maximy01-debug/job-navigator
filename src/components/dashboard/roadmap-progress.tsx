@@ -14,29 +14,41 @@ interface GradeProgress {
   description: string
 }
 
-const STORAGE_KEY = 'dashboard_roadmap_progress'
+const ROADMAP_KEY_PREFIX = 'dashboard_roadmap_progress'
 
-const defaultProgress: GradeProgress[] = [
-  { grade: 1, title: '1학년 - 기초 다지기', percentage: 100, description: '기초 자격증 취득, HTML/CSS 학습 완료' },
-  { grade: 2, title: '2학년 - 실전 프로젝트 (현재)', percentage: 65, description: 'React 학습 중, 팀 프로젝트 2개 진행' },
-  { grade: 3, title: '3학년 - 취업 준비', percentage: 0, description: '포트폴리오 완성, 기업 프로젝트 참여 예정' },
+export function getRoadmapKey(studentNumber: number): string {
+  return `${ROADMAP_KEY_PREFIX}_${studentNumber}`
+}
+
+const emptyProgress: GradeProgress[] = [
+  { grade: 1, title: '1학년', percentage: 0, description: '' },
+  { grade: 2, title: '2학년', percentage: 0, description: '' },
+  { grade: 3, title: '3학년', percentage: 0, description: '' },
 ]
 
-export function RoadmapProgress() {
-  const [progress, setProgress] = useState<GradeProgress[]>(defaultProgress)
+interface RoadmapProgressProps {
+  studentNumber?: number
+}
+
+export function RoadmapProgress({ studentNumber }: RoadmapProgressProps) {
+  const [progress, setProgress] = useState<GradeProgress[]>(emptyProgress)
   const [editingIdx, setEditingIdx] = useState<number | null>(null)
   const [editForm, setEditForm] = useState<GradeProgress | null>(null)
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY)
+    if (!studentNumber) return
+    const stored = localStorage.getItem(getRoadmapKey(studentNumber))
     if (stored) {
       try { setProgress(JSON.parse(stored)) } catch {}
+    } else {
+      setProgress(emptyProgress)
     }
-  }, [])
+  }, [studentNumber])
 
   const saveProgress = (updated: GradeProgress[]) => {
+    if (!studentNumber) return
     setProgress(updated)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
+    localStorage.setItem(getRoadmapKey(studentNumber), JSON.stringify(updated))
   }
 
   const startEdit = (idx: number) => {

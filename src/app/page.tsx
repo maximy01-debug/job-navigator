@@ -13,6 +13,8 @@ import { Target, Trophy, Briefcase, Calendar, User } from "lucide-react"
 import { getCurrentStudent } from "@/lib/supabase/auth"
 import { getStudentPhoto } from "@/lib/students/storage"
 import { getProjects } from "@/lib/students/extended-storage"
+import { getQuestKey } from "@/components/dashboard/daily-quest"
+import { getRoadmapKey } from "@/components/dashboard/roadmap-progress"
 import type { Student } from "@/lib/students/data"
 
 export default function DashboardPage() {
@@ -37,26 +39,28 @@ export default function DashboardPage() {
       const photo = getStudentPhoto(currentStudent.student_number)
       setStudentPhoto(photo)
 
-      // 동적 Stats 계산
+      // 동적 Stats 계산 (학생별 키 사용)
       try {
-        // 로드맵 달성률
-        const roadmapRaw = localStorage.getItem('dashboard_roadmap_progress')
+        const sn = currentStudent.student_number
+
+        // 로드맵 달성률 (학생별)
+        const roadmapRaw = localStorage.getItem(getRoadmapKey(sn))
         const roadmapData: { grade: number; percentage: number }[] = roadmapRaw
           ? JSON.parse(roadmapRaw)
-          : [{ grade: 1, percentage: 100 }, { grade: 2, percentage: 65 }, { grade: 3, percentage: 0 }]
-        const total = roadmapData.length
-        const avgPercent = total > 0
-          ? Math.round(roadmapData.reduce((sum, g) => sum + g.percentage, 0) / total)
+          : []
+        const total = roadmapData.length || 3
+        const avgPercent = roadmapData.length > 0
+          ? Math.round(roadmapData.reduce((sum, g) => sum + g.percentage, 0) / roadmapData.length)
           : 0
         const milestoneCount = roadmapData.filter(g => g.percentage === 100).length
 
-        // 일일 목표 달성
-        const questsRaw = localStorage.getItem('dashboard_quests')
+        // 일일 목표 달성 (학생별)
+        const questsRaw = localStorage.getItem(getQuestKey(sn))
         const quests: { isCompleted?: boolean; completed?: boolean }[] = questsRaw ? JSON.parse(questsRaw) : []
         const completedQuests = quests.filter(q => q.isCompleted || q.completed).length
 
         // 포트폴리오 프로젝트
-        const projectCount = getProjects(currentStudent.student_number).length
+        const projectCount = getProjects(sn).length
 
         setStats({
           roadmapPercent: avgPercent,
@@ -159,12 +163,12 @@ export default function DashboardPage() {
           <>
             {/* Main Content Grid */}
             <div className="grid gap-6 lg:grid-cols-2 mb-8">
-              <DailyQuest />
-              <ActivityFeed />
+              <DailyQuest studentNumber={student.student_number} />
+              <ActivityFeed studentNumber={student.student_number} />
             </div>
 
             {/* Roadmap Progress Overview */}
-            <RoadmapProgress />
+            <RoadmapProgress studentNumber={student.student_number} />
 
             {/* D-Day Counter */}
             <Card className="bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
