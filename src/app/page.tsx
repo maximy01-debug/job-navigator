@@ -12,12 +12,22 @@ import { Button } from "@/components/ui/button"
 import { Target, Trophy, Briefcase, Calendar, User } from "lucide-react"
 import { getCurrentStudent } from "@/lib/supabase/auth"
 import { getStudentPhoto } from "@/lib/students/storage"
+import { getProjects } from "@/lib/students/extended-storage"
 import type { Student } from "@/lib/students/data"
 
 export default function DashboardPage() {
   const [student, setStudent] = useState<Student | null>(null)
   const [studentPhoto, setStudentPhoto] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState({
+    roadmapPercent: 0,
+    roadmapCompleted: 0,
+    roadmapTotal: 3,
+    completedQuests: 0,
+    totalQuests: 0,
+    projectCount: 0,
+    milestoneCount: 0,
+  })
 
   useEffect(() => {
     const currentStudent = getCurrentStudent()
@@ -26,6 +36,38 @@ export default function DashboardPage() {
     if (currentStudent) {
       const photo = getStudentPhoto(currentStudent.student_number)
       setStudentPhoto(photo)
+
+      // 동적 Stats 계산
+      try {
+        // 로드맵 달성률
+        const roadmapRaw = localStorage.getItem('dashboard_roadmap_progress')
+        const roadmapData: { grade: number; percentage: number }[] = roadmapRaw
+          ? JSON.parse(roadmapRaw)
+          : [{ grade: 1, percentage: 100 }, { grade: 2, percentage: 65 }, { grade: 3, percentage: 0 }]
+        const total = roadmapData.length
+        const avgPercent = total > 0
+          ? Math.round(roadmapData.reduce((sum, g) => sum + g.percentage, 0) / total)
+          : 0
+        const milestoneCount = roadmapData.filter(g => g.percentage === 100).length
+
+        // 일일 목표 달성
+        const questsRaw = localStorage.getItem('dashboard_quests')
+        const quests: { isCompleted?: boolean; completed?: boolean }[] = questsRaw ? JSON.parse(questsRaw) : []
+        const completedQuests = quests.filter(q => q.isCompleted || q.completed).length
+
+        // 포트폴리오 프로젝트
+        const projectCount = getProjects(currentStudent.student_number).length
+
+        setStats({
+          roadmapPercent: avgPercent,
+          roadmapCompleted: milestoneCount,
+          roadmapTotal: total,
+          completedQuests,
+          totalQuests: quests.length,
+          projectCount,
+          milestoneCount,
+        })
+      } catch { /* localStorage 읽기 실패 시 기본값 유지 */ }
     }
 
     setLoading(false)
@@ -41,7 +83,7 @@ export default function DashboardPage() {
           {loading ? (
             <h1 className="text-3xl font-bold mb-2">로딩 중...</h1>
           ) : student ? (
-            <div className="flex items-center space-x-6">
+            <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6">
               {/* Student Photo */}
               <div className="h-24 w-24 rounded-full bg-muted flex items-center justify-center overflow-hidden flex-shrink-0 border-4 border-primary">
                 {studentPhoto ? (
@@ -55,8 +97,8 @@ export default function DashboardPage() {
                 )}
               </div>
               {/* Welcome Message */}
-              <div>
-                <h1 className="text-3xl font-bold mb-2">안녕하세요, {student.name}님! 👋</h1>
+              <div className="text-center sm:text-left">
+                <h1 className="text-2xl sm:text-3xl font-bold mb-2">안녕하세요, {student.name}님! 👋</h1>
                 <p className="text-muted-foreground">
                   {student.department} {student.class_name} | 학생번호: {student.student_number}
                 </p>
@@ -87,28 +129,28 @@ export default function DashboardPage() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
           <StatsCard
             title="전체 로드맵 달성률"
-            value={student ? "68%" : "—"}
-            description={student ? "12개 중 8개 완료" : "로그인 후 확인"}
+            value={student ? `${stats.roadmapPercent}%` : "—"}
+            description={student ? `${stats.roadmapTotal}개 학년 중 ${stats.milestoneCount}개 완료` : "로그인 후 확인"}
             icon={Target}
-            trend={student ? { value: 12, isPositive: true } : undefined}
+            trend={student && stats.roadmapPercent > 0 ? { value: stats.roadmapPercent, isPositive: true } : undefined}
           />
           <StatsCard
             title="이번 달 목표 달성"
-            value={student ? "24일" : "—"}
-            description={student ? "목표 달성 연속 기록" : "로그인 후 확인"}
+            value={student ? `${stats.completedQuests}개` : "—"}
+            description={student ? `총 ${stats.totalQuests}개 중 완료` : "로그인 후 확인"}
             icon={Calendar}
-            trend={student ? { value: 8, isPositive: true } : undefined}
+            trend={student && stats.totalQuests > 0 ? { value: Math.round((stats.completedQuests / stats.totalQuests) * 100), isPositive: true } : undefined}
           />
           <StatsCard
             title="포트폴리오 프로젝트"
-            value={student ? "7개" : "—"}
-            description={student ? "최근 1개 추가됨" : "로그인 후 확인"}
+            value={student ? `${stats.projectCount}개` : "—"}
+            description={student ? (stats.projectCount > 0 ? "프로젝트 관리 중" : "프로젝트를 추가해보세요") : "로그인 후 확인"}
             icon={Briefcase}
           />
           <StatsCard
-            title="취득 자격증"
-            value={student ? "3개" : "—"}
-            description={student ? "정보처리기능사 외 2개" : "로그인 후 확인"}
+            title="로드맵 마일스톤"
+            value={student ? `${stats.milestoneCount}개` : "—"}
+            description={student ? `${stats.roadmapTotal}개 학년 중 달성` : "로그인 후 확인"}
             icon={Trophy}
           />
         </div>

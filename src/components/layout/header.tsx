@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Target, LayoutDashboard, FolderKanban, Calendar, LogOut, User, MessageCircle } from "lucide-react"
+import { Target, LayoutDashboard, FolderKanban, Calendar, LogOut, User, MessageCircle, Menu, X } from "lucide-react"
 import { getCurrentStudent, signOutStudent } from "@/lib/supabase/auth"
 import type { Student } from "@/lib/students/data"
 
@@ -21,6 +21,7 @@ export function Header() {
   const router = useRouter()
   const [student, setStudent] = useState<Student | null>(null)
   const [loading, setLoading] = useState(true)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
     // 초기 학생 정보 가져오기
@@ -58,6 +59,13 @@ export function Header() {
               </span>
             </Link>
 
+            <button
+              className="md:hidden p-2 rounded-md hover:bg-muted"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+
             <nav className="hidden md:flex items-center space-x-1">
               {navigation.map((item) => {
                 const isActive = pathname === item.href
@@ -77,7 +85,7 @@ export function Header() {
             </nav>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-4">
             {loading ? (
               <div className="h-9 w-20 bg-muted animate-pulse rounded-md" />
             ) : student ? (
@@ -122,6 +130,57 @@ export function Header() {
           </div>
         </div>
       </div>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t bg-background">
+          <nav className="container mx-auto px-4 py-3 space-y-1">
+            {navigation.map((item) => {
+              const isActive = pathname === item.href
+              return (
+                <Link key={item.name} href={item.href} onClick={() => setMobileMenuOpen(false)}>
+                  <Button
+                    variant={isActive ? "default" : "ghost"}
+                    size="sm"
+                    className="w-full justify-start flex items-center space-x-2"
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span>{item.name}</span>
+                  </Button>
+                </Link>
+              )
+            })}
+            {student ? (
+              <div className="pt-2 border-t mt-2 space-y-1">
+                <Link href="/mypage" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start">
+                    <User className="h-4 w-4 mr-2" />
+                    마이페이지
+                  </Button>
+                </Link>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => { handleSignOut(); setMobileMenuOpen(false) }}
+                  className="w-full justify-start text-muted-foreground"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  로그아웃
+                </Button>
+              </div>
+            ) : (
+              <div className="pt-2 border-t mt-2 flex gap-2">
+                <Link href="/auth/select" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="outline" size="sm" className="w-full">로그인</Button>
+                </Link>
+                <Link href="/auth/signup" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
+                  <Button size="sm" className="w-full">회원가입</Button>
+                </Link>
+              </div>
+            )}
+          </nav>
+        </div>
+      )}
     </header>
   )
 }

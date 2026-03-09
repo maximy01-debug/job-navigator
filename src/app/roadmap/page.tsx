@@ -126,7 +126,7 @@ export default function RoadmapPage() {
       <main className="container mx-auto px-4 py-8">
         {/* Page Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
             <div>
               <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
                 <Target className="h-8 w-8 text-primary" />
@@ -166,7 +166,7 @@ export default function RoadmapPage() {
                 <Progress value={progressPercentage} className="h-3" />
               </div>
 
-              <div className="grid grid-cols-3 gap-4 pt-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
                 {gradeStats.map(stat => (
                   <div key={stat.grade} className="text-center p-4 rounded-lg bg-background/50">
                     <div className="text-2xl font-bold mb-1">
