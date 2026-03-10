@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Target, CheckCircle2, Camera, User } from "lucide-react"
 import { addStudent, getAllStudents, saveStudentPhoto } from "@/lib/students/storage"
 import { signInAsStudent } from "@/lib/supabase/auth"
+import { useAuth } from "@/components/auth-provider"
 import type { Student } from "@/lib/students/data"
 
 const DEPARTMENTS = [
@@ -29,6 +30,7 @@ const CLUBS = [
 
 export default function SignUpPage() {
   const router = useRouter()
+  const { refreshAuth } = useAuth()
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
@@ -129,12 +131,12 @@ export default function SignUpPage() {
 
     // 자동 로그인 처리
     signInAsStudent(form.name, form.student_number)
+    refreshAuth()
 
     setSuccess(true)
     setLoading(false)
     setTimeout(() => {
       router.push("/")
-      router.refresh()
     }, 2500)
   }
 

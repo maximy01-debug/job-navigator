@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { FileCheck, Download, ArrowLeft, Loader2 } from "lucide-react"
-import { getCurrentStudent } from "@/lib/supabase/auth"
+import { useAuth } from "@/components/auth-provider"
 import { getFinalizedResultsByStudent } from "@/lib/consulting/storage"
 import { RESULT_TYPE_LABELS, RESULT_TYPE_COLORS } from "@/lib/consulting/types"
 import type { ConsultingResult } from "@/lib/consulting/types"
@@ -13,16 +13,17 @@ import Link from "next/link"
 
 export default function ConsultingResultsPage() {
   const router = useRouter()
+  const { student, loading: authLoading } = useAuth()
   const [results, setResults] = useState<ConsultingResult[]>([])
   const [loading, setLoading] = useState(true)
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   useEffect(() => {
-    const student = getCurrentStudent()
+    if (authLoading) return
     if (!student) { router.push("/auth/login"); return }
     setResults(getFinalizedResultsByStudent(student.student_number))
     setLoading(false)
-  }, [router])
+  }, [student, authLoading, router])
 
   const handleDownload = (result: ConsultingResult) => {
     const blob = new Blob([result.content], { type: 'text/plain;charset=utf-8' })

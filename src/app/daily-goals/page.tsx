@@ -8,7 +8,7 @@ import { Progress } from "@/components/ui/progress"
 import { CheckCircle2, Circle, Plus, Calendar as CalendarIcon, Trash2 } from "lucide-react"
 import { format } from "date-fns"
 import { getQuestKey, type DailyGoal } from "@/components/dashboard/daily-quest"
-import { getCurrentStudent } from "@/lib/supabase/auth"
+import { useAuth } from "@/components/auth-provider"
 
 // 히스토리 키 (날짜별 과거 기록)
 const getHistoryKey = (studentNumber: number) => `daily_goals_history_${studentNumber}`
@@ -16,11 +16,12 @@ const getHistoryKey = (studentNumber: number) => `daily_goals_history_${studentN
 const getTodayStr = () => new Date().toISOString().split('T')[0]
 
 export default function DailyGoalsPage() {
+  const { student } = useAuth()
   const [todayGoals, setTodayGoals] = useState<DailyGoal[]>([])
   const [history, setHistory] = useState<{ date: string; goals: DailyGoal[] }[]>([])
   const [newGoal, setNewGoal] = useState("")
-  const [studentNumber, setStudentNumber] = useState<number | null>(null)
 
+  const studentNumber = student?.student_number ?? null
   const today = format(new Date(), 'yyyy년 MM월 dd일')
 
   const loadGoals = (sn: number) => {
@@ -44,19 +45,10 @@ export default function DailyGoalsPage() {
   }
 
   useEffect(() => {
-    const student = getCurrentStudent()
     if (student) {
-      setStudentNumber(student.student_number)
       loadGoals(student.student_number)
     }
-
-    const handleStorage = () => {
-      const s = getCurrentStudent()
-      if (s) loadGoals(s.student_number)
-    }
-    window.addEventListener('storage', handleStorage)
-    return () => window.removeEventListener('storage', handleStorage)
-  }, [])
+  }, [student])
 
   const saveGoals = (updated: DailyGoal[]) => {
     if (!studentNumber) return

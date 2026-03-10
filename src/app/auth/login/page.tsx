@@ -6,10 +6,12 @@ import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { signInAsStudent } from "@/lib/supabase/auth"
+import { useAuth } from "@/components/auth-provider"
 import { Target, ArrowLeft } from "lucide-react"
 
 export default function LoginPage() {
   const router = useRouter()
+  const { refreshAuth } = useAuth()
   const [name, setName] = useState("")
   const [studentNumber, setStudentNumber] = useState("")
   const [error, setError] = useState("")
@@ -23,8 +25,8 @@ export default function LoginPage() {
     const result = signInAsStudent(name, studentNumber)
 
     if (result.success) {
+      refreshAuth()
       router.push("/")
-      router.refresh()
     } else {
       setError(result.error || "로그인에 실패했습니다.")
       setLoading(false)

@@ -6,25 +6,26 @@ import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { MessageCircle, Plus, Clock, CheckCircle, Loader2 } from "lucide-react"
-import { getCurrentStudent } from "@/lib/supabase/auth"
+import { useAuth } from "@/components/auth-provider"
 import { getConsultingRequestsByStudent } from "@/lib/consulting/storage"
 import { STATUS_LABELS, STATUS_COLORS } from "@/lib/consulting/types"
 import type { ConsultingRequest } from "@/lib/consulting/types"
 
 export default function ConsultingDashboardPage() {
   const router = useRouter()
+  const { student, loading: authLoading } = useAuth()
   const [requests, setRequests] = useState<ConsultingRequest[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const student = getCurrentStudent()
+    if (authLoading) return
     if (!student) {
       router.push("/auth/login")
       return
     }
     setRequests(getConsultingRequestsByStudent(student.student_number))
     setLoading(false)
-  }, [router])
+  }, [student, authLoading, router])
 
   const counts = {
     requested: requests.filter(r => r.status === 'requested').length,

@@ -1,12 +1,11 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Target, LayoutDashboard, FolderKanban, Calendar, LogOut, User, MessageCircle, Menu, X } from "lucide-react"
-import { getCurrentStudent, signOutStudent } from "@/lib/supabase/auth"
-import type { Student } from "@/lib/students/data"
+import { useAuth } from "@/components/auth-provider"
 
 const navigation = [
   { name: '대시보드', href: '/', icon: LayoutDashboard },
@@ -19,30 +18,12 @@ const navigation = [
 export function Header() {
   const pathname = usePathname()
   const router = useRouter()
-  const [student, setStudent] = useState<Student | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { student, loading, logout } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  useEffect(() => {
-    // 초기 학생 정보 가져오기
-    const currentStudent = getCurrentStudent()
-    setStudent(currentStudent)
-    setLoading(false)
-
-    // 스토리지 변경 감지 (다른 탭에서 로그인/로그아웃 시)
-    const handleStorageChange = () => {
-      setStudent(getCurrentStudent())
-    }
-
-    window.addEventListener('storage', handleStorageChange)
-    return () => window.removeEventListener('storage', handleStorageChange)
-  }, [])
-
   const handleSignOut = () => {
-    signOutStudent()
-    setStudent(null)
+    logout()
     router.push("/auth/login")
-    router.refresh()
   }
 
   return (

@@ -10,17 +10,15 @@ import { RoadmapProgress } from "@/components/dashboard/roadmap-progress"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Target, Trophy, Briefcase, Calendar, User } from "lucide-react"
-import { getCurrentStudent } from "@/lib/supabase/auth"
+import { useAuth } from "@/components/auth-provider"
 import { getStudentPhoto } from "@/lib/students/storage"
 import { getProjects } from "@/lib/students/extended-storage"
 import { getQuestKey } from "@/components/dashboard/daily-quest"
 import { getRoadmapKey } from "@/components/dashboard/roadmap-progress"
-import type { Student } from "@/lib/students/data"
 
 export default function DashboardPage() {
-  const [student, setStudent] = useState<Student | null>(null)
+  const { student, loading } = useAuth()
   const [studentPhoto, setStudentPhoto] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState({
     roadmapPercent: 0,
     roadmapCompleted: 0,
@@ -32,50 +30,45 @@ export default function DashboardPage() {
   })
 
   useEffect(() => {
-    const currentStudent = getCurrentStudent()
-    setStudent(currentStudent)
+    if (!student) return
 
-    if (currentStudent) {
-      const photo = getStudentPhoto(currentStudent.student_number)
-      setStudentPhoto(photo)
+    const photo = getStudentPhoto(student.student_number)
+    setStudentPhoto(photo)
 
-      // 동적 Stats 계산 (학생별 키 사용)
-      try {
-        const sn = currentStudent.student_number
+    // 동적 Stats 계산 (학생별 키 사용)
+    try {
+      const sn = student.student_number
 
-        // 로드맵 달성률 (학생별)
-        const roadmapRaw = localStorage.getItem(getRoadmapKey(sn))
-        const roadmapData: { grade: number; percentage: number }[] = roadmapRaw
-          ? JSON.parse(roadmapRaw)
-          : []
-        const total = roadmapData.length || 3
-        const avgPercent = roadmapData.length > 0
-          ? Math.round(roadmapData.reduce((sum, g) => sum + g.percentage, 0) / roadmapData.length)
-          : 0
-        const milestoneCount = roadmapData.filter(g => g.percentage === 100).length
+      // 로드맵 달성률 (학생별)
+      const roadmapRaw = localStorage.getItem(getRoadmapKey(sn))
+      const roadmapData: { grade: number; percentage: number }[] = roadmapRaw
+        ? JSON.parse(roadmapRaw)
+        : []
+      const total = roadmapData.length || 3
+      const avgPercent = roadmapData.length > 0
+        ? Math.round(roadmapData.reduce((sum, g) => sum + g.percentage, 0) / roadmapData.length)
+        : 0
+      const milestoneCount = roadmapData.filter(g => g.percentage === 100).length
 
-        // 일일 목표 달성 (학생별)
-        const questsRaw = localStorage.getItem(getQuestKey(sn))
-        const quests: { isCompleted?: boolean; completed?: boolean }[] = questsRaw ? JSON.parse(questsRaw) : []
-        const completedQuests = quests.filter(q => q.isCompleted || q.completed).length
+      // 일일 목표 달성 (학생별)
+      const questsRaw = localStorage.getItem(getQuestKey(sn))
+      const quests: { isCompleted?: boolean; completed?: boolean }[] = questsRaw ? JSON.parse(questsRaw) : []
+      const completedQuests = quests.filter(q => q.isCompleted || q.completed).length
 
-        // 포트폴리오 프로젝트
-        const projectCount = getProjects(sn).length
+      // 포트폴리오 프로젝트
+      const projectCount = getProjects(sn).length
 
-        setStats({
-          roadmapPercent: avgPercent,
-          roadmapCompleted: milestoneCount,
-          roadmapTotal: total,
-          completedQuests,
-          totalQuests: quests.length,
-          projectCount,
-          milestoneCount,
-        })
-      } catch { /* localStorage 읽기 실패 시 기본값 유지 */ }
-    }
-
-    setLoading(false)
-  }, [])
+      setStats({
+        roadmapPercent: avgPercent,
+        roadmapCompleted: milestoneCount,
+        roadmapTotal: total,
+        completedQuests,
+        totalQuests: quests.length,
+        projectCount,
+        milestoneCount,
+      })
+    } catch { /* localStorage 읽기 실패 시 기본값 유지 */ }
+  }, [student])
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">

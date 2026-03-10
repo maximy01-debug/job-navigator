@@ -5,14 +5,13 @@ import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { FileText, Upload, Loader2, CheckCircle, ArrowLeft } from "lucide-react"
-import { getCurrentStudent } from "@/lib/supabase/auth"
+import { useAuth } from "@/components/auth-provider"
 import { addConsultingRequest } from "@/lib/consulting/storage"
-import type { Student } from "@/lib/students/data"
 import Link from "next/link"
 
 export default function ConsultingRequestPage() {
   const router = useRouter()
-  const [student, setStudent] = useState<Student | null>(null)
+  const { student, loading: authLoading } = useAuth()
 
   const [desiredJob, setDesiredJob] = useState("")
   const [targetCompany, setTargetCompany] = useState("")
@@ -27,10 +26,9 @@ export default function ConsultingRequestPage() {
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
-    const s = getCurrentStudent()
-    if (!s) { router.push("/auth/login"); return }
-    setStudent(s)
-  }, [router])
+    if (authLoading) return
+    if (!student) { router.push("/auth/login") }
+  }, [student, authLoading, router])
 
   const handlePdfUpload = async (
     field: 'resume' | 'coverLetter' | 'portfolio',
@@ -126,7 +124,7 @@ export default function ConsultingRequestPage() {
     </div>
   )
 
-  if (!student) {
+  if (authLoading || !student) {
     return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>
   }
 

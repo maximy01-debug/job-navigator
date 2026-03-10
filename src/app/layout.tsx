@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { FloatingLogo } from "@/components/layout/floating-logo";
+import { AuthProvider } from "@/components/auth-provider";
 
 export const metadata: Metadata = {
   title: "Job Navigator - 특성화고 취업 로드맵",
@@ -21,8 +22,10 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className="antialiased">
-        <FloatingLogo />
-        {children}
+        <AuthProvider>
+          <FloatingLogo />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

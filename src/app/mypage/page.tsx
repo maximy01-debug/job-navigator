@@ -11,11 +11,10 @@ import {
   User, CheckCircle2, Circle, Trophy, FileText,
   TrendingUp, Target, Calendar, BookOpen, Users, Shield, Sparkles
 } from "lucide-react"
-import { getCurrentStudent } from "@/lib/supabase/auth"
+import { useAuth } from "@/components/auth-provider"
 import { getStudentPhoto } from "@/lib/students/storage"
 import { DAILY_QUEST_KEY, type DailyGoal } from "@/components/dashboard/daily-quest"
 import { format } from "date-fns"
-import type { Student } from "@/lib/students/data"
 
 // 다른 컴포넌트에서 쓰는 localStorage 키
 const ROADMAP_KEY = 'dashboard_roadmap_progress'
@@ -62,7 +61,7 @@ interface FeedbackItem {
 
 export default function MyPage() {
   const router = useRouter()
-  const [student, setStudent] = useState<Student | null>(null)
+  const { student, loading: authLoading } = useAuth()
   const [photo, setPhoto] = useState<string | null>(null)
   const [quests, setQuests] = useState<DailyGoal[]>([])
   const [roadmap, setRoadmap] = useState<GradeProgress[]>([])
@@ -70,12 +69,12 @@ export default function MyPage() {
   const [feedbackItems, setFeedbackItems] = useState<FeedbackItem[]>([])
 
   useEffect(() => {
-    const s = getCurrentStudent()
-    if (!s) {
+    if (authLoading) return
+    if (!student) {
       router.push('/auth/select')
       return
     }
-    setStudent(s)
+    const s = student
     setPhoto(getStudentPhoto(s.student_number))
 
     // 오늘의 퀘스트
@@ -127,7 +126,7 @@ export default function MyPage() {
         }
       }
     } catch {}
-  }, [router])
+  }, [student, authLoading, router])
 
   if (!student) return null
 
