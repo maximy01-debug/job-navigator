@@ -4,8 +4,8 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Target, LayoutDashboard, FolderKanban, Calendar, LogOut, User, MessageCircle, Menu, X } from "lucide-react"
-import { useAuth } from "@/components/auth-provider"
+import { Target, LayoutDashboard, FolderKanban, Calendar, LogOut, User, MessageCircle, Menu, X, Shield } from "lucide-react"
+import { useAuth, useAdminAuth } from "@/components/auth-provider"
 
 const navigation = [
   { name: '대시보드', href: '/', icon: LayoutDashboard },
@@ -19,11 +19,17 @@ export function Header() {
   const pathname = usePathname()
   const router = useRouter()
   const { student, loading, logout } = useAuth()
+  const { admin, adminLoading, adminLogout } = useAdminAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const handleSignOut = () => {
     logout()
     router.push("/auth/login")
+  }
+
+  const handleAdminSignOut = () => {
+    adminLogout()
+    router.push("/")
   }
 
   return (
@@ -67,8 +73,33 @@ export function Header() {
           </div>
 
           <div className="hidden md:flex items-center space-x-4">
-            {loading ? (
+            {(loading || adminLoading) ? (
               <div className="h-9 w-20 bg-muted animate-pulse rounded-md" />
+            ) : admin ? (
+              <div className="flex items-center space-x-2">
+                <Link href="/admin">
+                  <div className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 transition-colors cursor-pointer border border-red-200">
+                    <Shield className="h-4 w-4 text-red-500" />
+                    <span className="text-sm font-medium text-red-700">
+                      {admin.name}
+                    </span>
+                  </div>
+                </Link>
+                <Link href="/admin">
+                  <Button variant="outline" size="sm" className="border-red-200 text-red-600 hover:bg-red-50">
+                    관리자 페이지
+                  </Button>
+                </Link>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleAdminSignOut}
+                  className="flex items-center space-x-1 text-muted-foreground"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>로그아웃</span>
+                </Button>
+              </div>
             ) : student ? (
               <div className="flex items-center space-x-2">
                 <Link href="/mypage">
@@ -131,7 +162,25 @@ export function Header() {
                 </Link>
               )
             })}
-            {student ? (
+            {admin ? (
+              <div className="pt-2 border-t mt-2 space-y-1">
+                <Link href="/admin" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start text-red-600">
+                    <Shield className="h-4 w-4 mr-2" />
+                    관리자 페이지 ({admin.name})
+                  </Button>
+                </Link>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => { handleAdminSignOut(); setMobileMenuOpen(false) }}
+                  className="w-full justify-start text-muted-foreground"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  로그아웃
+                </Button>
+              </div>
+            ) : student ? (
               <div className="pt-2 border-t mt-2 space-y-1">
                 <Link href="/mypage" onClick={() => setMobileMenuOpen(false)}>
                   <Button variant="ghost" size="sm" className="w-full justify-start">

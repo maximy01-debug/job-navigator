@@ -10,7 +10,7 @@ import { RoadmapProgress } from "@/components/dashboard/roadmap-progress"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Target, Trophy, Briefcase, Calendar, User } from "lucide-react"
-import { useAuth } from "@/components/auth-provider"
+import { useAuth, useAdminAuth } from "@/components/auth-provider"
 import { getStudentPhoto } from "@/lib/students/storage"
 import { getProjects } from "@/lib/students/extended-storage"
 import { getQuestKey } from "@/components/dashboard/daily-quest"
@@ -18,6 +18,7 @@ import { getRoadmapKey } from "@/components/dashboard/roadmap-progress"
 
 export default function DashboardPage() {
   const { student, loading } = useAuth()
+  const { admin, adminLoading } = useAdminAuth()
   const [studentPhoto, setStudentPhoto] = useState<string | null>(null)
   const [stats, setStats] = useState({
     roadmapPercent: 0,
@@ -77,8 +78,23 @@ export default function DashboardPage() {
       <main className="container mx-auto px-4 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          {loading ? (
+          {(loading || adminLoading) ? (
             <h1 className="text-3xl font-bold mb-2">로딩 중...</h1>
+          ) : admin ? (
+            <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6">
+              <div className="h-24 w-24 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0 border-4 border-red-500">
+                <Target className="h-12 w-12 text-red-500" />
+              </div>
+              <div className="text-center sm:text-left">
+                <h1 className="text-2xl sm:text-3xl font-bold mb-2">관리자 모드 ({admin.name})</h1>
+                <p className="text-muted-foreground">
+                  관리자로 로그인되어 있습니다.
+                </p>
+                <Link href="/admin">
+                  <Button className="mt-3 bg-red-500 hover:bg-red-600">관리자 대시보드로 이동</Button>
+                </Link>
+              </div>
+            </div>
           ) : student ? (
             <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6">
               {/* Student Photo */}
