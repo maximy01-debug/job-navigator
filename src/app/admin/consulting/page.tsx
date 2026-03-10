@@ -6,7 +6,7 @@ import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Shield, MessageCircle, ArrowLeft, Wrench } from "lucide-react"
-import { getCurrentAdmin } from "@/lib/supabase/auth"
+import { useAdminAuth } from "@/components/auth-provider"
 import { getAllConsultingRequests, updateConsultingRequest } from "@/lib/consulting/storage"
 import { STATUS_LABELS, STATUS_COLORS } from "@/lib/consulting/types"
 import type { ConsultingRequest, ConsultingRequestStatus } from "@/lib/consulting/types"
@@ -14,12 +14,14 @@ import type { ConsultingRequest, ConsultingRequestStatus } from "@/lib/consultin
 export default function AdminConsultingPage() {
   const router = useRouter()
   const [requests, setRequests] = useState<ConsultingRequest[]>([])
+  const { admin, adminLoading } = useAdminAuth()
   const [filter, setFilter] = useState<ConsultingRequestStatus | 'all'>('all')
 
   useEffect(() => {
-    if (!getCurrentAdmin()) { router.push("/admin/login"); return }
+    if (adminLoading) return
+    if (!admin) { router.push("/admin/login"); return }
     reload()
-  }, [router])
+  }, [admin, adminLoading, router])
 
   const reload = () => setRequests(getAllConsultingRequests())
 

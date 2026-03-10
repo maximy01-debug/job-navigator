@@ -9,7 +9,7 @@ import {
   Shield, ArrowLeft, Play, Save, CheckCircle, Loader2,
   FileText, BookOpen, Trash2,
 } from "lucide-react"
-import { getCurrentAdmin } from "@/lib/supabase/auth"
+import { useAdminAuth } from "@/components/auth-provider"
 import {
   getConsultingRequestById, getAllPromptTemplates,
   addConsultingResult, getResultsByRequestId,
@@ -55,14 +55,17 @@ export default function WorkspacePage() {
   const [resultType, setResultType] = useState<ConsultingResultType>('cover_letter_feedback')
   const [resultTitle, setResultTitle] = useState('')
 
+  const { admin: currentAdmin, adminLoading } = useAdminAuth()
+
   useEffect(() => {
-    if (!getCurrentAdmin()) { router.push("/admin/login"); return }
+    if (adminLoading) return
+    if (!currentAdmin) { router.push("/admin/login"); return }
     const req = getConsultingRequestById(requestId)
     if (!req) { router.push("/admin/consulting"); return }
     setRequest(req)
     setTemplates(getAllPromptTemplates())
     setResults(getResultsByRequestId(requestId))
-  }, [requestId, router])
+  }, [requestId, currentAdmin, adminLoading, router])
 
   const reload = () => setResults(getResultsByRequestId(requestId))
 

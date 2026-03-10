@@ -6,7 +6,7 @@ import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Shield, BookOpen, Plus, Pencil, Trash2, ArrowLeft, X, Save } from "lucide-react"
-import { getCurrentAdmin } from "@/lib/supabase/auth"
+import { useAdminAuth } from "@/components/auth-provider"
 import {
   getAllPromptTemplates, addPromptTemplate, updatePromptTemplate, deletePromptTemplate,
 } from "@/lib/consulting/storage"
@@ -23,13 +23,15 @@ export default function AdminPromptsPage() {
   const [majorFilter, setMajorFilter] = useState<string>('all')
   const [jobFilter, setJobFilter] = useState<string>('all')
 
+  const { admin, adminLoading } = useAdminAuth()
   const [editing, setEditing] = useState<Partial<PromptTemplate> & typeof EMPTY | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null) // null = new
 
   useEffect(() => {
-    if (!getCurrentAdmin()) { router.push("/admin/login"); return }
+    if (adminLoading) return
+    if (!admin) { router.push("/admin/login"); return }
     reload()
-  }, [router])
+  }, [admin, adminLoading, router])
 
   const reload = () => setTemplates(getAllPromptTemplates())
 

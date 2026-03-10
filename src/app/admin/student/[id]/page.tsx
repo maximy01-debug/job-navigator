@@ -11,7 +11,7 @@ import {
   MessageSquare, BarChart2, Plus, Trash2, Edit2, Check, X,
   Github, ExternalLink, Save, Sparkles, Loader2, RefreshCw
 } from "lucide-react"
-import { getCurrentAdmin } from "@/lib/supabase/auth"
+import { useAdminAuth } from "@/components/auth-provider"
 import { getAllStudents, getStudentPhoto, saveStudentPhoto } from "@/lib/students/storage"
 import {
   getProjects, addProject, updateProject, deleteProject,
@@ -93,14 +93,17 @@ export default function StudentDetailPage() {
   const [feedbacks, setFeedbacks] = useState<Record<string, ProjectFeedback>>({})
   const [generatingFeedback, setGeneratingFeedback] = useState<string | null>(null)
 
+  const { admin: currentAdmin, adminLoading } = useAdminAuth()
+
   useEffect(() => {
-    if (!getCurrentAdmin()) { router.push('/admin/login'); return }
+    if (adminLoading) return
+    if (!currentAdmin) { router.push('/admin/login'); return }
     const s = getAllStudents().find(x => x.student_number === studentId)
     if (!s) { router.push('/admin'); return }
     setStudent(s)
     setPhoto(getStudentPhoto(s.student_number))
     reload()
-  }, [studentId, router])
+  }, [studentId, currentAdmin, adminLoading, router])
 
   const reload = () => {
     const ps = getProjects(studentId)

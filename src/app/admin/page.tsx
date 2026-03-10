@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { getCurrentAdmin, signOutAdmin } from "@/lib/supabase/auth"
+import { useAdminAuth } from "@/components/auth-provider"
 import { getAllStudents, getStudentPhotos, saveStudentPhoto, uploadStudentsFromCSV } from "@/lib/students/storage"
 import Link from "next/link"
 import { Shield, Users, Upload, Image as ImageIcon, LogOut, Download, Settings, MessageCircle, BookOpen } from "lucide-react"
@@ -12,7 +12,7 @@ import type { Student } from "@/lib/students/data"
 
 export default function AdminDashboardPage() {
   const router = useRouter()
-  const [admin, setAdmin] = useState<any>(null)
+  const { admin, adminLoading, adminLogout } = useAdminAuth()
   const [students, setStudents] = useState<Student[]>([])
   const [photos, setPhotos] = useState<Record<number, string>>({})
   const [selectedStudent, setSelectedStudent] = useState<number | null>(null)
@@ -20,15 +20,13 @@ export default function AdminDashboardPage() {
   const [uploading, setUploading] = useState(false)
 
   useEffect(() => {
-    const currentAdmin = getCurrentAdmin()
-    if (!currentAdmin) {
+    if (adminLoading) return
+    if (!admin) {
       router.push("/admin/login")
       return
     }
-
-    setAdmin(currentAdmin)
     loadData()
-  }, [router])
+  }, [admin, adminLoading, router])
 
   const loadData = () => {
     setStudents(getAllStudents())
@@ -36,7 +34,7 @@ export default function AdminDashboardPage() {
   }
 
   const handleLogout = () => {
-    signOutAdmin()
+    adminLogout()
     router.push("/admin/login")
   }
 

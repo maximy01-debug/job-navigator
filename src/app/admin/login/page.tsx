@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { signInAsAdmin } from "@/lib/supabase/auth"
+import { useAdminAuth } from "@/components/auth-provider"
 import { Shield, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 
 export default function AdminLoginPage() {
   const router = useRouter()
+  const { refreshAdminAuth } = useAdminAuth()
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -23,8 +25,8 @@ export default function AdminLoginPage() {
     const result = signInAsAdmin(username, password)
 
     if (result.success) {
+      refreshAdminAuth()
       router.push("/admin")
-      router.refresh()
     } else {
       setError(result.error || "로그인에 실패했습니다.")
       setLoading(false)
